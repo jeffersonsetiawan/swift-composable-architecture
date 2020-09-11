@@ -100,6 +100,15 @@ struct RootView: View {
                   action: RootAction.effectsCancellation)
               )
             )
+            
+            NavigationLink(
+              "Debounce",
+              destination: DebounceView(
+                store: self.store.scope(
+                  state: { $0.effectsDebounce },
+                  action: RootAction.effectsDebounce)
+              )
+            )
 
             NavigationLink(
               "Long-living effects",

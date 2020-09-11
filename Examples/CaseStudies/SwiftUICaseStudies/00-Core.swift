@@ -11,6 +11,7 @@ struct RootState {
   var dieRoll = DieRollState()
   var effectsBasics = EffectsBasicsState()
   var effectsCancellation = EffectsCancellationState()
+  var effectsDebounce = DebounceState()
   var effectsTimers = TimersState()
   var episodes = EpisodesState(episodes: .mocks)
   var lifecycle = LifecycleDemoState()
@@ -40,6 +41,7 @@ enum RootAction {
   case dieRoll(DieRollAction)
   case effectsBasics(EffectsBasicsAction)
   case effectsCancellation(EffectsCancellationAction)
+  case effectsDebounce(DebounceAction)
   case episodes(EpisodesAction)
   case lifecycle(LifecycleDemoAction)
   case loadThenNavigate(LoadThenNavigateAction)
@@ -71,6 +73,7 @@ struct RootEnvironment {
   var userDidTakeScreenshot: Effect<Void, Never>
   var uuid: () -> UUID
   var webSocket: WebSocketClient
+  var checkText: (String) -> Effect<String, Never>
 
   static let live = Self(
     date: Date.init,
@@ -82,8 +85,17 @@ struct RootEnvironment {
     trivia: liveTrivia(for:),
     userDidTakeScreenshot: liveUserDidTakeScreenshot,
     uuid: UUID.init,
-    webSocket: .live
+    webSocket: .live,
+    checkText: checkText(string:)
   )
+}
+
+func checkText(string: String) -> Effect<String, Never> {
+    print("<<< JEFF! \(Int.random(in: 1...100_000))")
+    let result = string.lowercased().contains("tokopedia") ? "Passes (\(Int.random(in: 1 ... 1000)))" : "Not Passes (\(Int.random(in: 1001 ... 2000)))"
+    return Effect(value: result)
+        .delay(for: 1, scheduler: DispatchQueue.main)
+        .eraseToEffect()
 }
 
 let rootReducer = Reducer<RootState, RootAction, RootEnvironment>.combine(
@@ -144,6 +156,12 @@ let rootReducer = Reducer<RootState, RootAction, RootEnvironment>.combine(
       state: \.effectsCancellation,
       action: /RootAction.effectsCancellation,
       environment: { .init(mainQueue: $0.mainQueue, trivia: $0.trivia) }
+    ),
+  debounceReducer
+    .pullback(
+        state: \.effectsDebounce,
+        action: /RootAction.effectsDebounce,
+        environment: { .init(mainQueue: $0.mainQueue, checkText: $0.checkText) }
     ),
   episodesReducer
     .pullback(
