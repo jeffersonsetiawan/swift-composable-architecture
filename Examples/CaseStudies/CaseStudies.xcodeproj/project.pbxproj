@@ -76,6 +76,7 @@
 		DCC68EE32447C8540037F998 /* 04-HigherOrderReducers-ReusableFavoriting.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCC68EE22447C8540037F998 /* 04-HigherOrderReducers-ReusableFavoriting.swift */; };
 		DCE63B71245CC0B90080A23D /* 04-HigherOrderReducers-Recursion.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCE63B70245CC0B90080A23D /* 04-HigherOrderReducers-Recursion.swift */; };
 		E5B2C394250B536100AB6AE5 /* 02-Effects-DebounceCancellation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5B2C393250B536100AB6AE5 /* 02-Effects-DebounceCancellation.swift */; };
+		E5B2C396250B596F00AB6AE5 /* 02-Effects-Debounce-CancellationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5B2C395250B596F00AB6AE5 /* 02-Effects-Debounce-CancellationTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -224,6 +225,7 @@
 		DCC68EE22447C8540037F998 /* 04-HigherOrderReducers-ReusableFavoriting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "04-HigherOrderReducers-ReusableFavoriting.swift"; sourceTree = "<group>"; };
 		DCE63B70245CC0B90080A23D /* 04-HigherOrderReducers-Recursion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "04-HigherOrderReducers-Recursion.swift"; sourceTree = "<group>"; };
 		E5B2C393250B536100AB6AE5 /* 02-Effects-DebounceCancellation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "02-Effects-DebounceCancellation.swift"; sourceTree = "<group>"; };
+		E5B2C395250B596F00AB6AE5 /* 02-Effects-Debounce-CancellationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "02-Effects-Debounce-CancellationTests.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -428,6 +430,7 @@
 				CAA9ADC324465AB00003A984 /* 02-Effects-BasicsTests.swift */,
 				CAA9ADC724465D950003A984 /* 02-Effects-CancellationTests.swift */,
 				CAA9ADCB2446615B0003A984 /* 02-Effects-LongLivingTests.swift */,
+				E5B2C395250B596F00AB6AE5 /* 02-Effects-Debounce-CancellationTests.swift */,
 				DC07231624465D1E003A8B65 /* 02-Effects-TimersTests.swift */,
 				CA410EE1247C73B400E41798 /* 02-Effects-WebSocketTests.swift */,
 				DC634B242448D15B00DAA016 /* 04-HigherOrderReducers-ReusableFavoritingTests.swift */,
@@ -776,6 +779,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E5B2C396250B596F00AB6AE5 /* 02-Effects-Debounce-CancellationTests.swift in Sources */,
 				CA0C51FB245389CC00A04EAB /* 04-HigherOrderReducers-ReusableOfflineDownloadsTests.swift in Sources */,
 				DC634B252448D15B00DAA016 /* 04-HigherOrderReducers-ReusableFavoritingTests.swift in Sources */,
 				CAA9ADC824465D950003A984 /* 02-Effects-CancellationTests.swift in Sources */,

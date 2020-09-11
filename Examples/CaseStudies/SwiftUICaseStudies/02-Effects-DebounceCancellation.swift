@@ -25,19 +25,6 @@ struct DebounceEnvironment {
     internal var checkText: (String) -> Effect<String, Never>
 }
 
-extension DebounceEnvironment {
-    internal static var live = Self(
-        mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
-        checkText: {
-            print("<<< JEFF !")
-            let result = $0.lowercased().contains("tokopedia") ? "Passes (\(Int.random(in: 1 ... 1000)))" : "Not Passes (\(Int.random(in: 1001 ... 2000)))"
-            return Effect(value: result)
-                .delay(for: 1, scheduler: DispatchQueue.main)
-                .eraseToEffect()
-        }
-    )
-}
-
 let debounceReducer = Reducer<DebounceState, DebounceAction, DebounceEnvironment> { state, action, env in
 
     struct DebounceCancellationId: Hashable {}
@@ -46,11 +33,21 @@ let debounceReducer = Reducer<DebounceState, DebounceAction, DebounceEnvironment
     switch action {
     case let .changeText(text):
         state.text = text
-        return Effect(value: .checkText)
-            .debounce(id: DebounceCancellationId(), for: 1, scheduler: env.mainQueue)
+        if state.text == "" {
+            return .merge(
+                .cancel(id: DebounceCancellationId()),
+                .cancel(id: RequestCancellationId())
+            )
+        }
+        return .merge(
+            .cancel(id: RequestCancellationId()),
+            Effect(value: .checkText)
+                .debounce(id: DebounceCancellationId(), for: 1, scheduler: env.mainQueue)
+        )
     case .checkText:
         return env.checkText(state.text)
             .map(DebounceAction.receiveCheckText)
+            .cancellable(id: RequestCancellationId(), cancelInFlight: true)
     case let .receiveCheckText(result):
         state.result = result
         return .none
@@ -62,6 +59,7 @@ struct DebounceView: View {
     var body: some View {
         WithViewStore(self.store) { viewStore in
             VStack {
+                Spacer()
                 TextField(
                     "Type here",
                     text: viewStore.binding(
@@ -71,7 +69,9 @@ struct DebounceView: View {
                 )
                 .disableAutocorrection(true)
                 Text(viewStore.result)
+                Spacer()
             }
+            .padding()
         }
     }
 }
