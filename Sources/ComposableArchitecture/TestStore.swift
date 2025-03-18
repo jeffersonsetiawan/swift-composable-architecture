@@ -4,7 +4,7 @@ import ConcurrencyExtras
 import CustomDump
 @_spi(Beta) import Dependencies
 import Foundation
-import IssueReporting
+import XCTestDynamicOverlay
 @_spi(SharedChangeTracking) import Sharing
 
 /// A testable runtime for a reducer.
