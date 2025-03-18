@@ -1,20 +1,25 @@
 import Speech
 
 // The core data types in the Speech framework are reference types and are not constructible by us,
-// and so they aren't super testable out the box. We define struct versions of those types to make
+// and so they aren't testable out the box. We define struct versions of those types to make
 // them easier to use and test.
+
+struct SpeechRecognitionMetadata: Equatable {
+  var averagePauseDuration: TimeInterval
+  var speakingRate: Double
+  var voiceAnalytics: VoiceAnalytics?
+}
 
 struct SpeechRecognitionResult: Equatable {
   var bestTranscription: Transcription
-  var transcriptions: [Transcription]
   var isFinal: Bool
+  var speechRecognitionMetadata: SpeechRecognitionMetadata?
+  var transcriptions: [Transcription]
 }
 
 struct Transcription: Equatable {
-  var averagePauseDuration: TimeInterval
   var formattedString: String
   var segments: [TranscriptionSegment]
-  var speakingRate: Double
 }
 
 struct TranscriptionSegment: Equatable {
@@ -22,9 +27,7 @@ struct TranscriptionSegment: Equatable {
   var confidence: Float
   var duration: TimeInterval
   var substring: String
-  var substringRange: NSRange
   var timestamp: TimeInterval
-  var voiceAnalytics: VoiceAnalytics?
 }
 
 struct VoiceAnalytics: Equatable {
@@ -39,20 +42,28 @@ struct AcousticFeature: Equatable {
   var frameDuration: TimeInterval
 }
 
+extension SpeechRecognitionMetadata {
+  init(_ speechRecognitionMetadata: SFSpeechRecognitionMetadata) {
+    self.averagePauseDuration = speechRecognitionMetadata.averagePauseDuration
+    self.speakingRate = speechRecognitionMetadata.speakingRate
+    self.voiceAnalytics = speechRecognitionMetadata.voiceAnalytics.map(VoiceAnalytics.init)
+  }
+}
+
 extension SpeechRecognitionResult {
   init(_ speechRecognitionResult: SFSpeechRecognitionResult) {
     self.bestTranscription = Transcription(speechRecognitionResult.bestTranscription)
-    self.transcriptions = speechRecognitionResult.transcriptions.map(Transcription.init)
     self.isFinal = speechRecognitionResult.isFinal
+    self.speechRecognitionMetadata = speechRecognitionResult.speechRecognitionMetadata
+      .map(SpeechRecognitionMetadata.init)
+    self.transcriptions = speechRecognitionResult.transcriptions.map(Transcription.init)
   }
 }
 
 extension Transcription {
   init(_ transcription: SFTranscription) {
-    self.averagePauseDuration = transcription.averagePauseDuration
     self.formattedString = transcription.formattedString
     self.segments = transcription.segments.map(TranscriptionSegment.init)
-    self.speakingRate = transcription.speakingRate
   }
 }
 
@@ -62,9 +73,7 @@ extension TranscriptionSegment {
     self.confidence = transcriptionSegment.confidence
     self.duration = transcriptionSegment.duration
     self.substring = transcriptionSegment.substring
-    self.substringRange = transcriptionSegment.substringRange
     self.timestamp = transcriptionSegment.timestamp
-    self.voiceAnalytics = transcriptionSegment.voiceAnalytics.map(VoiceAnalytics.init)
   }
 }
 

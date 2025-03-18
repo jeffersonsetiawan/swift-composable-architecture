@@ -1,7 +1,7 @@
 import SwiftUI
 
 extension Text {
-  init(template: String, _ style: Font.TextStyle) {
+  init(template: String, _ style: Font.TextStyle = .body) {
     enum Style: Hashable {
       case code
       case emphasis
@@ -44,7 +44,7 @@ extension Text {
     }
     flushSegment()
 
-    self = segments.reduce(Text(""), +)
+    self = segments.reduce(Text(verbatim: ""), +)
   }
 }
 

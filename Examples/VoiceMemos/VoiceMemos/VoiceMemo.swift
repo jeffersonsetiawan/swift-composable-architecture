@@ -1,160 +1,145 @@
 import ComposableArchitecture
-import Foundation
 import SwiftUI
 
-struct VoiceMemo: Equatable {
-  var date: Date
-  var duration: TimeInterval
-  var mode = Mode.notPlaying
-  var title = ""
-  var url: URL
+@Reducer
+struct VoiceMemo {
+  @ObservableState
+  struct State: Equatable, Identifiable {
+    var date: Date
+    var duration: TimeInterval
+    var mode = Mode.notPlaying
+    var title = ""
+    var url: URL
 
-  enum Mode: Equatable {
-    case notPlaying
-    case playing(progress: Double)
+    var id: URL { self.url }
 
-    var isPlaying: Bool {
-      if case .playing = self { return true }
-      return false
-    }
-
-    var progress: Double? {
-      if case let .playing(progress) = self { return progress }
-      return nil
+    @CasePathable
+    @dynamicMemberLookup
+    enum Mode: Equatable {
+      case notPlaying
+      case playing(progress: Double)
     }
   }
-}
 
-enum VoiceMemoAction: Equatable {
-  case audioPlayerClient(Result<AudioPlayerClient.Action, AudioPlayerClient.Failure>)
-  case playButtonTapped
-  case delete
-  case timerUpdated(TimeInterval)
-  case titleTextFieldChanged(String)
-}
+  enum Action {
+    case audioPlayerClient(Result<Bool, any Error>)
+    case delegate(Delegate)
+    case playButtonTapped
+    case timerUpdated(TimeInterval)
+    case titleTextFieldChanged(String)
 
-struct VoiceMemoEnvironment {
-  var audioPlayerClient: AudioPlayerClient
-  var mainQueue: AnySchedulerOf<DispatchQueue>
-}
+    @CasePathable
+    enum Delegate {
+      case playbackStarted
+      case playbackFailed
+    }
+  }
 
-let voiceMemoReducer = Reducer<VoiceMemo, VoiceMemoAction, VoiceMemoEnvironment> {
-  memo, action, environment in
-  struct PlayerId: Hashable {}
-  struct TimerId: Hashable {}
+  @Dependency(\.audioPlayer) var audioPlayer
+  @Dependency(\.continuousClock) var clock
+  private enum CancelID { case play }
 
-  switch action {
-  case .audioPlayerClient(.success(.didFinishPlaying)), .audioPlayerClient(.failure):
-    memo.mode = .notPlaying
-    return .cancel(id: TimerId())
+  var body: some Reducer<State, Action> {
+    Reduce { state, action in
+      switch action {
+      case .audioPlayerClient(.failure):
+        state.mode = .notPlaying
+        return .merge(
+          .cancel(id: CancelID.play),
+          .send(.delegate(.playbackFailed))
+        )
 
-  case .delete:
-    return .merge(
-      environment.audioPlayerClient
-        .stop(PlayerId())
-        .fireAndForget(),
-      .cancel(id: PlayerId()),
-      .cancel(id: TimerId())
-    )
+      case .audioPlayerClient:
+        state.mode = .notPlaying
+        return .cancel(id: CancelID.play)
 
-  case .playButtonTapped:
-    switch memo.mode {
-    case .notPlaying:
-      memo.mode = .playing(progress: 0)
-      let start = environment.mainQueue.now
-      return .merge(
-        Effect.timer(id: TimerId(), every: 0.5, on: environment.mainQueue)
-          .map {
-            .timerUpdated(
-              TimeInterval($0.dispatchTime.uptimeNanoseconds - start.dispatchTime.uptimeNanoseconds)
-                / TimeInterval(NSEC_PER_SEC)
+      case .delegate:
+        return .none
+
+      case .playButtonTapped:
+        switch state.mode {
+        case .notPlaying:
+          state.mode = .playing(progress: 0)
+
+          return .run { [url = state.url] send in
+            await send(.delegate(.playbackStarted))
+
+            async let playAudio: Void = send(
+              .audioPlayerClient(Result { try await self.audioPlayer.play(url: url) })
             )
-          },
 
-        environment.audioPlayerClient
-          .play(PlayerId(), memo.url)
-          .catchToEffect()
-          .map(VoiceMemoAction.audioPlayerClient)
-          .cancellable(id: PlayerId())
-      )
+            var start: TimeInterval = 0
+            for await _ in self.clock.timer(interval: .milliseconds(500)) {
+              start += 0.5
+              await send(.timerUpdated(start))
+            }
 
-    case .playing:
-      memo.mode = .notPlaying
-      return .concatenate(
-        .cancel(id: TimerId()),
-        environment.audioPlayerClient
-          .stop(PlayerId())
-          .fireAndForget()
-      )
+            await playAudio
+          }
+          .cancellable(id: CancelID.play, cancelInFlight: true)
+
+        case .playing:
+          state.mode = .notPlaying
+          return .cancel(id: CancelID.play)
+        }
+
+      case let .timerUpdated(time):
+        switch state.mode {
+        case .notPlaying:
+          break
+        case .playing:
+          state.mode = .playing(progress: time / state.duration)
+        }
+        return .none
+
+      case let .titleTextFieldChanged(text):
+        state.title = text
+        return .none
+      }
     }
-
-  case let .timerUpdated(time):
-    switch memo.mode {
-    case .notPlaying:
-      break
-    case let .playing(progress: progress):
-      memo.mode = .playing(progress: time / memo.duration)
-    }
-    return .none
-
-  case let .titleTextFieldChanged(text):
-    memo.title = text
-    return .none
   }
 }
 
 struct VoiceMemoView: View {
-  // NB: We are using an explicit `ObservedObject` for the view store here instead of
-  // `WithViewStore` due to a SwiftUI bug where `GeometryReader`s inside `WithViewStore` will
-  // not properly update.
-  //
-  // Feedback filed: https://gist.github.com/mbrandonw/cc5da3d487bcf7c4f21c27019a440d18
-  @ObservedObject var viewStore: ViewStore<VoiceMemo, VoiceMemoAction>
-
-  init(store: Store<VoiceMemo, VoiceMemoAction>) {
-    self.viewStore = ViewStore(store)
-  }
+  @Bindable var store: StoreOf<VoiceMemo>
 
   var body: some View {
-    GeometryReader { proxy in
-      ZStack(alignment: .leading) {
-        if self.viewStore.mode.isPlaying {
-          Rectangle()
-            .foregroundColor(Color(.systemGray5))
-            .frame(width: proxy.size.width * CGFloat(self.viewStore.mode.progress ?? 0))
-            .animation(.linear(duration: 0.5))
-        }
+    let currentTime =
+      store.mode.playing.map { $0 * store.duration } ?? store.duration
+    HStack {
+      TextField(
+        "Untitled, \(store.date.formatted(date: .numeric, time: .shortened))",
+        text: $store.title.sending(\.titleTextFieldChanged)
+      )
 
-        HStack {
-          TextField(
-            "Untitled, \(dateFormatter.string(from: self.viewStore.date))",
-            text: self.viewStore.binding(
-              get: { $0.title }, send: VoiceMemoAction.titleTextFieldChanged)
-          )
+      Spacer()
 
-          Spacer()
+      dateComponentsFormatter.string(from: currentTime).map {
+        Text($0)
+          .font(.footnote.monospacedDigit())
+          .foregroundColor(Color(.systemGray))
+      }
 
-          dateComponentsFormatter.string(from: self.currentTime).map {
-            Text($0)
-              .font(Font.footnote.monospacedDigit())
-              .foregroundColor(Color(.systemGray))
-          }
-
-          Button(action: { self.viewStore.send(.playButtonTapped) }) {
-            Image(systemName: self.viewStore.mode.isPlaying ? "stop.circle" : "play.circle")
-              .font(Font.system(size: 22))
-          }
-        }
-        .frame(maxHeight: .infinity, alignment: .center)
-        .padding([.leading, .trailing])
+      Button {
+        store.send(.playButtonTapped)
+      } label: {
+        Image(systemName: store.mode.is(\.playing) ? "stop.circle" : "play.circle")
+          .font(.system(size: 22))
       }
     }
-    .buttonStyle(BorderlessButtonStyle())
-    .listRowBackground(self.viewStore.mode.isPlaying ? Color(.systemGray6) : .clear)
+    .buttonStyle(.borderless)
+    .frame(maxHeight: .infinity, alignment: .center)
+    .padding(.horizontal)
+    .listRowBackground(store.mode.is(\.playing) ? Color(.systemGray6) : .clear)
     .listRowInsets(EdgeInsets())
-  }
-
-  var currentTime: TimeInterval {
-    self.viewStore.mode.progress.map { $0 * self.viewStore.duration } ?? self.viewStore.duration
+    .background(
+      Color(.systemGray5)
+        .frame(maxWidth: store.mode.is(\.playing) ? .infinity : 0)
+        .animation(
+          store.mode.is(\.playing) ? .linear(duration: store.duration) : nil,
+          value: store.mode.is(\.playing)
+        ),
+      alignment: .leading
+    )
   }
 }

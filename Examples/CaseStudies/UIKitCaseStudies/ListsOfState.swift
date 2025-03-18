@@ -1,35 +1,34 @@
-import Combine
 import ComposableArchitecture
-import SwiftUI
 import UIKit
 
-struct CounterListState: Equatable {
-  var counters: [CounterState] = []
+@Reducer
+struct CounterList {
+  @ObservableState
+  struct State: Equatable {
+    var counters: IdentifiedArrayOf<Counter.State> = []
+  }
+
+  enum Action {
+    case counters(IdentifiedActionOf<Counter>)
+  }
+
+  var body: some Reducer<State, Action> {
+    EmptyReducer()
+      .forEach(\.counters, action: \.counters) {
+        Counter()
+      }
+  }
 }
-
-enum CounterListAction: Equatable {
-  case counter(index: Int, action: CounterAction)
-}
-
-struct CounterListEnvironment {}
-
-let counterListReducer: Reducer<CounterListState, CounterListAction, CounterListEnvironment> =
-  counterReducer.forEach(
-    state: \CounterListState.counters,
-    action: /CounterListAction.counter(index:action:),
-    environment: { _ in CounterEnvironment() }
-  )
 
 let cellIdentifier = "Cell"
 
 final class CountersTableViewController: UITableViewController {
-  let store: Store<CounterListState, CounterListAction>
-  let viewStore: ViewStore<CounterListState, CounterListAction>
-  var cancellables: Set<AnyCancellable> = []
+  private let store: StoreOf<CounterList>
 
-  init(store: Store<CounterListState, CounterListAction>) {
+  var observations: [IndexPath: ObserveToken] = [:]
+
+  init(store: StoreOf<CounterList>) {
     self.store = store
-    self.viewStore = ViewStore(store)
     super.init(nibName: nil, bundle: nil)
   }
 
@@ -40,17 +39,13 @@ final class CountersTableViewController: UITableViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
 
-    self.title = "Lists"
+    title = "Lists"
 
-    self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellIdentifier)
-
-    self.viewStore.publisher.counters
-      .sink(receiveValue: { [weak self] _ in self?.tableView.reloadData() })
-      .store(in: &self.cancellables)
+    tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellIdentifier)
   }
 
   override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    self.viewStore.counters.count
+    store.counters.count
   }
 
   override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath)
@@ -58,40 +53,36 @@ final class CountersTableViewController: UITableViewController {
   {
     let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath)
     cell.accessoryType = .disclosureIndicator
-    cell.textLabel?.text = "\(self.viewStore.counters[indexPath.row].count)"
+    observations[indexPath]?.cancel()
+    observations[indexPath] = observe { [weak self] in
+      guard let self else { return }
+      cell.textLabel?.text = "\(store.counters[indexPath.row].count)"
+    }
     return cell
   }
 
   override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    self.navigationController?.pushViewController(
-      CounterViewController(
-        store: self.store.scope(
-          state: { $0.counters[indexPath.row] },
-          action: { .counter(index: indexPath.row, action: $0) }
-        )
-      ),
-      animated: true
-    )
+    let id = store.counters[indexPath.row].id
+    if let store = store.scope(state: \.counters[id: id], action: \.counters[id: id]) {
+      navigationController?.pushViewController(CounterViewController(store: store), animated: true)
+    }
   }
 }
 
-struct CountersTableViewController_Previews: PreviewProvider {
-  static var previews: some View {
-    let vc = UINavigationController(
-      rootViewController: CountersTableViewController(
-        store: Store(
-          initialState: CounterListState(
-            counters: [
-              CounterState(),
-              CounterState(),
-              CounterState(),
-            ]
-          ),
-          reducer: counterListReducer,
-          environment: CounterListEnvironment()
+#Preview {
+  UINavigationController(
+    rootViewController: CountersTableViewController(
+      store: Store(
+        initialState: CounterList.State(
+          counters: [
+            Counter.State(),
+            Counter.State(),
+            Counter.State(),
+          ]
         )
-      )
+      ) {
+        CounterList()
+      }
     )
-    return UIViewRepresented(makeUIView: { _ in vc.view })
-  }
+  )
 }

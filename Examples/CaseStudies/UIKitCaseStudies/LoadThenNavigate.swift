@@ -1,62 +1,62 @@
-import Combine
 import ComposableArchitecture
-import SwiftUI
 import UIKit
 
-struct LazyNavigationState: Equatable {
-  var optionalCounter: CounterState?
-  var isActivityIndicatorHidden = true
-}
+@Reducer
+struct LazyNavigation {
+  @ObservableState
+  struct State: Equatable {
+    var optionalCounter: Counter.State?
+    var isActivityIndicatorHidden = true
+  }
 
-enum LazyNavigationAction: Equatable {
-  case optionalCounter(CounterAction)
-  case setNavigation(isActive: Bool)
-  case setNavigationIsActiveDelayCompleted
-}
+  enum Action {
+    case onDisappear
+    case optionalCounter(Counter.Action)
+    case setNavigation(isActive: Bool)
+    case setNavigationIsActiveDelayCompleted
+  }
 
-struct LazyNavigationEnvironment {
-  var mainQueue: AnySchedulerOf<DispatchQueue>
-}
+  private enum CancelID { case load }
+  @Dependency(\.continuousClock) var clock
 
-let lazyNavigationReducer =
-  counterReducer
-  .optional()
-  .pullback(
-    state: \.optionalCounter,
-    action: /LazyNavigationAction.optionalCounter,
-    environment: { _ in CounterEnvironment() }
-  )
-  .combined(
-    with: Reducer<
-      LazyNavigationState, LazyNavigationAction, LazyNavigationEnvironment
-    > { state, action, environment in
+  var body: some Reducer<State, Action> {
+    Reduce { state, action in
       switch action {
+      case .onDisappear:
+        return .cancel(id: CancelID.load)
+
       case .setNavigation(isActive: true):
         state.isActivityIndicatorHidden = false
-        return Effect(value: .setNavigationIsActiveDelayCompleted)
-          .delay(for: 1, scheduler: environment.mainQueue)
-          .eraseToEffect()
+        return .run { send in
+          try await self.clock.sleep(for: .seconds(1))
+          await send(.setNavigationIsActiveDelayCompleted)
+        }
+        .cancellable(id: CancelID.load)
+
       case .setNavigation(isActive: false):
         state.optionalCounter = nil
         return .none
+
       case .setNavigationIsActiveDelayCompleted:
         state.isActivityIndicatorHidden = true
-        state.optionalCounter = CounterState()
+        state.optionalCounter = Counter.State()
         return .none
+
       case .optionalCounter:
         return .none
       }
     }
-  )
+    .ifLet(\.optionalCounter, action: \.optionalCounter) {
+      Counter()
+    }
+  }
+}
 
-class LazyNavigationViewController: UIViewController {
-  var cancellables: [AnyCancellable] = []
-  let store: Store<LazyNavigationState, LazyNavigationAction>
-  let viewStore: ViewStore<LazyNavigationState, LazyNavigationAction>
+final class LazyNavigationViewController: UIViewController {
+  private let store: StoreOf<LazyNavigation>
 
-  init(store: Store<LazyNavigationState, LazyNavigationAction>) {
+  init(store: StoreOf<LazyNavigation>) {
     self.store = store
-    self.viewStore = ViewStore(store)
     super.init(nibName: nil, bundle: nil)
   }
 
@@ -67,9 +67,9 @@ class LazyNavigationViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
 
-    self.title = "Load then navigate"
+    title = "Load then navigate"
 
-    self.view.backgroundColor = .white
+    view.backgroundColor = .systemBackground
 
     let button = UIButton(type: .system)
     button.addTarget(self, action: #selector(loadOptionalCounterTapped), for: .touchUpInside)
@@ -83,58 +83,51 @@ class LazyNavigationViewController: UIViewController {
       activityIndicator,
     ])
     rootStackView.translatesAutoresizingMaskIntoConstraints = false
-    self.view.addSubview(rootStackView)
+    view.addSubview(rootStackView)
 
     NSLayoutConstraint.activate([
-      rootStackView.centerXAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor),
-      rootStackView.centerYAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerYAnchor),
+      rootStackView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
+      rootStackView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
     ])
 
-    self.viewStore.publisher.isActivityIndicatorHidden
-      .assign(to: \.isHidden, on: activityIndicator)
-      .store(in: &self.cancellables)
+    observe { [weak self] in
+      guard let self else { return }
+      activityIndicator.isHidden = store.isActivityIndicatorHidden
 
-    self.store
-      .scope(state: { $0.optionalCounter }, action: LazyNavigationAction.optionalCounter)
-      .ifLet(
-        then: { [weak self] store in
-          self?.navigationController?.pushViewController(
-            CounterViewController(store: store), animated: true)
-        },
-        else: { [weak self] in
-          guard let self = self else { return }
-          self.navigationController?.popToViewController(self, animated: true)
-        }
-      )
-      .store(in: &self.cancellables)
+      if let store = store.scope(state: \.optionalCounter, action: \.optionalCounter) {
+        navigationController?.pushViewController(
+          CounterViewController(store: store), animated: true
+        )
+      } else {
+        navigationController?.popToViewController(self, animated: true)
+      }
+    }
   }
 
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
 
-    if !self.isMovingToParent {
-      self.viewStore.send(.setNavigation(isActive: false))
+    if !isMovingToParent && store.optionalCounter != nil {
+      store.send(.setNavigation(isActive: false))
     }
   }
 
   @objc private func loadOptionalCounterTapped() {
-    self.viewStore.send(.setNavigation(isActive: true))
+    store.send(.setNavigation(isActive: true))
+  }
+
+  override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    store.send(.onDisappear)
   }
 }
 
-struct LazyNavigationViewController_Previews: PreviewProvider {
-  static var previews: some View {
-    let vc = UINavigationController(
-      rootViewController: LazyNavigationViewController(
-        store: Store(
-          initialState: LazyNavigationState(),
-          reducer: lazyNavigationReducer,
-          environment: LazyNavigationEnvironment(
-            mainQueue: DispatchQueue.main.eraseToAnyScheduler()
-          )
-        )
-      )
+#Preview {
+  UINavigationController(
+    rootViewController: LazyNavigationViewController(
+      store: Store(initialState: LazyNavigation.State()) {
+        LazyNavigation()
+      }
     )
-    return UIViewRepresented(makeUIView: { _ in vc.view })
-  }
+  )
 }
