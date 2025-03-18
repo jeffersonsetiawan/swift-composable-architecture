@@ -1,38 +1,38 @@
 import ComposableArchitecture
 import GameCore
 import NewGameCore
-import XCTest
+import Testing
 
-class NewGameCoreTests: XCTestCase {
-  let store = TestStore(
-    initialState: NewGameState(),
-    reducer: newGameReducer,
-    environment: NewGameEnvironment()
-  )
-
-  func testFlow_NewGame_Integration() {
-    self.store.send(.oPlayerNameChanged("Blob Sr.")) {
+@MainActor
+struct NewGameCoreTests {
+  @Test
+  func integration() async {
+    let store = TestStore(initialState: NewGame.State()) {
+      NewGame()
+    }
+    await store.send(\.binding.oPlayerName, "Blob Sr.") {
       $0.oPlayerName = "Blob Sr."
     }
-    self.store.send(.xPlayerNameChanged("Blob Jr.")) {
+    await store.send(\.binding.xPlayerName, "Blob Jr.") {
       $0.xPlayerName = "Blob Jr."
     }
-    self.store.send(.letsPlayButtonTapped) {
-      $0.game = GameState(oPlayerName: "Blob Sr.", xPlayerName: "Blob Jr.")
+    await store.send(.letsPlayButtonTapped) {
+      $0.game = Game.State(oPlayerName: "Blob Sr.", xPlayerName: "Blob Jr.")
     }
-    self.store.send(.game(.cellTapped(row: 0, column: 0))) {
+    await store.send(\.game.cellTapped, (row: 0, column: 0)) {
       $0.game!.board[0][0] = .x
       $0.game!.currentPlayer = .o
     }
-    self.store.send(.game(.quitButtonTapped)) {
+    await store.send(\.game.quitButtonTapped)
+    await store.receive(\.game.dismiss) {
       $0.game = nil
     }
-    self.store.send(.letsPlayButtonTapped) {
-      $0.game = GameState(oPlayerName: "Blob Sr.", xPlayerName: "Blob Jr.")
+    await store.send(.letsPlayButtonTapped) {
+      $0.game = Game.State(oPlayerName: "Blob Sr.", xPlayerName: "Blob Jr.")
     }
-    self.store.send(.gameDismissed) {
+    await store.send(\.game.dismiss) {
       $0.game = nil
     }
-    self.store.send(.logoutButtonTapped)
+    await store.send(.logoutButtonTapped)
   }
 }

@@ -1,105 +1,89 @@
 import AuthenticationClient
 import ComposableArchitecture
 import LoginCore
+import Testing
 import TwoFactorCore
-import XCTest
 
-class LoginCoreTests: XCTestCase {
-  func testFlow_Success_TwoFactor_Integration() {
-    var authenticationClient = AuthenticationClient.failing
-    authenticationClient.login = { _ in
-      Effect(value: .init(token: "deadbeefdeadbeef", twoFactorRequired: true))
+@MainActor
+struct LoginCoreTests {
+  @Test
+  func twoFactorSuccess() async {
+    let store = TestStore(initialState: Login.State()) {
+      Login()
+    } withDependencies: {
+      $0.authenticationClient.login = { @Sendable _, _ in
+        AuthenticationResponse(token: "deadbeefdeadbeef", twoFactorRequired: true)
+      }
+      $0.authenticationClient.twoFactor = { @Sendable _, _ in
+        AuthenticationResponse(token: "deadbeefdeadbeef", twoFactorRequired: false)
+      }
     }
-    authenticationClient.twoFactor = { _ in
-      Effect(value: .init(token: "deadbeefdeadbeef", twoFactorRequired: false))
-    }
 
-    let store = TestStore(
-      initialState: LoginState(),
-      reducer: loginReducer,
-      environment: LoginEnvironment(
-        authenticationClient: authenticationClient,
-        mainQueue: .immediate
-      )
-    )
-
-    store.send(.emailChanged("2fa@pointfree.co")) {
+    await store.send(\.view.binding.email, "2fa@pointfree.co") {
       $0.email = "2fa@pointfree.co"
     }
-    store.send(.passwordChanged("password")) {
+    await store.send(\.view.binding.password, "password") {
       $0.password = "password"
       $0.isFormValid = true
     }
-    store.send(.loginButtonTapped) {
+    let twoFactorPresentationTask = await store.send(\.view.loginButtonTapped) {
       $0.isLoginRequestInFlight = true
     }
-    store.receive(
-      .loginResponse(.success(.init(token: "deadbeefdeadbeef", twoFactorRequired: true)))
-    ) {
+    await store.receive(\.loginResponse.success) {
       $0.isLoginRequestInFlight = false
-      $0.twoFactor = TwoFactorState(token: "deadbeefdeadbeef")
+      $0.twoFactor = TwoFactor.State(token: "deadbeefdeadbeef")
     }
-    store.send(.twoFactor(.codeChanged("1234"))) {
+    await store.send(\.twoFactor.view.binding.code, "1234") {
       $0.twoFactor?.code = "1234"
       $0.twoFactor?.isFormValid = true
     }
-    store.send(.twoFactor(.submitButtonTapped)) {
+    await store.send(\.twoFactor.view.submitButtonTapped) {
       $0.twoFactor?.isTwoFactorRequestInFlight = true
     }
-    store.receive(
-      .twoFactor(
-        .twoFactorResponse(.success(.init(token: "deadbeefdeadbeef", twoFactorRequired: false)))
-      )
-    ) {
+    await store.receive(\.twoFactor.twoFactorResponse.success) {
       $0.twoFactor?.isTwoFactorRequestInFlight = false
     }
+    await twoFactorPresentationTask.cancel()
   }
 
-  func testFlow_DismissEarly_TwoFactor_Integration() {
-    var authenticationClient = AuthenticationClient.failing
-    authenticationClient.login = { _ in
-      Effect(value: .init(token: "deadbeefdeadbeef", twoFactorRequired: true))
+  @Test
+  func twoFactorDismissInFlight() async {
+    let store = TestStore(initialState: Login.State()) {
+      Login()
+    } withDependencies: {
+      $0.authenticationClient.login = { @Sendable _, _ in
+        AuthenticationResponse(token: "deadbeefdeadbeef", twoFactorRequired: true)
+      }
+      $0.authenticationClient.twoFactor = { @Sendable _, _ in
+        try await Task.sleep(for: .seconds(1))
+        return AuthenticationResponse(token: "deadbeefdeadbeef", twoFactorRequired: false)
+      }
     }
-    authenticationClient.twoFactor = { _ in
-      Effect(value: .init(token: "deadbeefdeadbeef", twoFactorRequired: false))
-    }
-    let scheduler = DispatchQueue.test
 
-    let store = TestStore(
-      initialState: LoginState(),
-      reducer: loginReducer,
-      environment: LoginEnvironment(
-        authenticationClient: authenticationClient,
-        mainQueue: scheduler.eraseToAnyScheduler()
-      )
-    )
-
-    store.send(.emailChanged("2fa@pointfree.co")) {
+    await store.send(\.view.binding.email, "2fa@pointfree.co") {
       $0.email = "2fa@pointfree.co"
     }
-    store.send(.passwordChanged("password")) {
+    await store.send(\.view.binding.password, "password") {
       $0.password = "password"
       $0.isFormValid = true
     }
-    store.send(.loginButtonTapped) {
+    await store.send(\.view.loginButtonTapped) {
       $0.isLoginRequestInFlight = true
     }
-    scheduler.advance()
-    store.receive(
-      .loginResponse(.success(.init(token: "deadbeefdeadbeef", twoFactorRequired: true)))
-    ) {
+    await store.receive(\.loginResponse.success) {
       $0.isLoginRequestInFlight = false
-      $0.twoFactor = TwoFactorState(token: "deadbeefdeadbeef")
+      $0.twoFactor = TwoFactor.State(token: "deadbeefdeadbeef")
     }
-    store.send(.twoFactor(.codeChanged("1234"))) {
+    await store.send(\.twoFactor.view.binding.code, "1234") {
       $0.twoFactor?.code = "1234"
       $0.twoFactor?.isFormValid = true
     }
-    store.send(.twoFactor(.submitButtonTapped)) {
+    await store.send(\.twoFactor.view.submitButtonTapped) {
       $0.twoFactor?.isTwoFactorRequestInFlight = true
     }
-    store.send(.twoFactorDismissed) {
+    await store.send(\.twoFactor.dismiss) {
       $0.twoFactor = nil
     }
+    await store.finish()
   }
 }

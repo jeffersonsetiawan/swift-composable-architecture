@@ -1,16 +1,25 @@
 import ComposableArchitecture
 import Foundation
 
+@DependencyClient
 struct AudioPlayerClient {
-  var play: (URL) -> Effect<Action, Failure>
-  var stop: () -> Effect<Never, Never>
+  var play: @Sendable (_ url: URL) async throws -> Bool
+}
 
-  enum Action: Equatable {
-    case didFinishPlaying(successfully: Bool)
-  }
+extension AudioPlayerClient: TestDependencyKey {
+  static let previewValue = Self(
+    play: { _ in
+      try await Task.sleep(for: .seconds(5))
+      return true
+    }
+  )
 
-  enum Failure: Equatable, Error {
-    case couldntCreateAudioPlayer
-    case decodeErrorDidOccur
+  static let testValue = Self()
+}
+
+extension DependencyValues {
+  var audioPlayer: AudioPlayerClient {
+    get { self[AudioPlayerClient.self] }
+    set { self[AudioPlayerClient.self] = newValue }
   }
 }

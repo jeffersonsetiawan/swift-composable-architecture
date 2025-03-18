@@ -1,56 +1,56 @@
 import ComposableArchitecture
-import XCTest
+import Testing
 
 @testable import UIKitCaseStudies
 
-final class UIKitCaseStudiesTests: XCTestCase {
-  func testCountDown() {
-    let store = TestStore(
-      initialState: CounterState(),
-      reducer: counterReducer,
-      environment: CounterEnvironment()
-    )
-
-    store.send(.incrementButtonTapped) {
-      $0.count = 1
-    }
-    store.send(.decrementButtonTapped) {
-      $0.count = 0
-    }
+@MainActor
+@Test
+func countDown() async {
+  let store = TestStore(initialState: Counter.State()) {
+    Counter()
   }
 
-  func testCountDownList() {
-    let firstState = CounterState()
-    let secondState = CounterState()
-    let thirdState = CounterState()
+  await store.send(.incrementButtonTapped) {
+    $0.count = 1
+  }
+  await store.send(.decrementButtonTapped) {
+    $0.count = 0
+  }
+}
 
-    let store = TestStore(
-      initialState: CounterListState(
-        counters: [firstState, secondState, thirdState]
-      ),
-      reducer: counterListReducer,
-      environment: CounterListEnvironment()
+@MainActor
+@Test
+func countDownList() async {
+  let firstState = Counter.State()
+  let secondState = Counter.State()
+  let thirdState = Counter.State()
+
+  let store = TestStore(
+    initialState: CounterList.State(
+      counters: [firstState, secondState, thirdState]
     )
+  ) {
+    CounterList()
+  }
 
-    store.send(.counter(id: firstState.id, action: .incrementButtonTapped)) {
-      $0.counters[id: firstState.id]?.count = 1
-    }
-    store.send(.counter(id: firstState.id, action: .decrementButtonTapped)) {
-      $0.counters[id: firstState.id]?.count = 0
-    }
+  await store.send(\.counters[id: firstState.id].incrementButtonTapped) {
+    $0.counters[id: firstState.id]?.count = 1
+  }
+  await store.send(\.counters[id: firstState.id].decrementButtonTapped) {
+    $0.counters[id: firstState.id]?.count = 0
+  }
 
-    store.send(.counter(id: secondState.id, action: .incrementButtonTapped)) {
-      $0.counters[id: secondState.id]?.count = 1
-    }
-    store.send(.counter(id: secondState.id, action: .decrementButtonTapped)) {
-      $0.counters[id: secondState.id]?.count = 0
-    }
+  await store.send(\.counters[id: secondState.id].incrementButtonTapped) {
+    $0.counters[id: secondState.id]?.count = 1
+  }
+  await store.send(\.counters[id: secondState.id].decrementButtonTapped) {
+    $0.counters[id: secondState.id]?.count = 0
+  }
 
-    store.send(.counter(id: thirdState.id, action: .incrementButtonTapped)) {
-      $0.counters[id: thirdState.id]?.count = 1
-    }
-    store.send(.counter(id: thirdState.id, action: .decrementButtonTapped)) {
-      $0.counters[id: thirdState.id]?.count = 0
-    }
+  await store.send(\.counters[id: thirdState.id].incrementButtonTapped) {
+    $0.counters[id: thirdState.id]?.count = 1
+  }
+  await store.send(\.counters[id: thirdState.id].decrementButtonTapped) {
+    $0.counters[id: thirdState.id]?.count = 0
   }
 }

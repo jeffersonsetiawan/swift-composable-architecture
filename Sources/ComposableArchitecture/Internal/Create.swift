@@ -20,28 +20,24 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import Combine
-import Darwin
+@preconcurrency import Combine
+import Foundation
 
-final class DemandBuffer<S: Subscriber> {
+final class DemandBuffer<S: Subscriber>: @unchecked Sendable {
   private var buffer = [S.Input]()
   private let subscriber: S
   private var completion: Subscribers.Completion<S.Failure>?
   private var demandState = Demand()
-  private let lock: os_unfair_lock_t
+  private let lock = NSRecursiveLock()
 
   init(subscriber: S) {
     self.subscriber = subscriber
-    self.lock = os_unfair_lock_t.allocate(capacity: 1)
-    self.lock.initialize(to: os_unfair_lock())
-  }
-
-  deinit {
-    self.lock.deinitialize(count: 1)
-    self.lock.deallocate()
   }
 
   func buffer(value: S.Input) -> Subscribers.Demand {
+    lock.lock()
+    defer { lock.unlock() }
+
     precondition(
       self.completion == nil, "How could a completed publisher sent values?! Beats me 🤷‍♂️")
 
@@ -55,6 +51,9 @@ final class DemandBuffer<S: Subscriber> {
   }
 
   func complete(completion: Subscribers.Completion<S.Failure>) {
+    lock.lock()
+    defer { lock.unlock() }
+
     precondition(
       self.completion == nil, "Completion have already occurred, which is quite awkward 🥺")
 
@@ -103,52 +102,56 @@ final class DemandBuffer<S: Subscriber> {
   }
 }
 
-extension AnyPublisher {
-  private init(_ callback: @escaping (Effect<Output, Failure>.Subscriber) -> Cancellable) {
+extension AnyPublisher where Failure == Never {
+  private init(
+    _ callback: @escaping @Sendable (Effect<Output>.Subscriber) -> any Cancellable
+  ) {
     self = Publishers.Create(callback: callback).eraseToAnyPublisher()
   }
 
   static func create(
-    _ factory: @escaping (Effect<Output, Failure>.Subscriber) -> Cancellable
+    _ factory: @escaping @Sendable (Effect<Output>.Subscriber) -> any Cancellable
   ) -> AnyPublisher<Output, Failure> {
     AnyPublisher(factory)
   }
 }
 
 extension Publishers {
-  fileprivate class Create<Output, Failure: Swift.Error>: Publisher {
-    private let callback: (Effect<Output, Failure>.Subscriber) -> Cancellable
+  fileprivate final class Create<Output>: Publisher, Sendable {
+    typealias Failure = Never
 
-    init(callback: @escaping (Effect<Output, Failure>.Subscriber) -> Cancellable) {
+    private let callback: @Sendable (Effect<Output>.Subscriber) -> any Cancellable
+
+    init(callback: @escaping @Sendable (Effect<Output>.Subscriber) -> any Cancellable) {
       self.callback = callback
     }
 
-    func receive<S: Subscriber>(subscriber: S) where Failure == S.Failure, Output == S.Input {
+    func receive<S: Subscriber>(subscriber: S) where S.Input == Output, S.Failure == Failure {
       subscriber.receive(subscription: Subscription(callback: callback, downstream: subscriber))
     }
   }
 }
 
 extension Publishers.Create {
-  fileprivate class Subscription<Downstream: Subscriber>: Combine.Subscription
-  where Output == Downstream.Input, Failure == Downstream.Failure {
+  fileprivate final class Subscription<Downstream: Subscriber>: Combine.Subscription, Sendable
+  where Downstream.Input == Output, Downstream.Failure == Never {
     private let buffer: DemandBuffer<Downstream>
-    private var cancellable: Cancellable?
+    private let cancellable = LockIsolated<(any Cancellable)?>(nil)
 
     init(
-      callback: @escaping (Effect<Output, Failure>.Subscriber) -> Cancellable,
+      callback: @escaping @Sendable (Effect<Output>.Subscriber) -> any Cancellable,
       downstream: Downstream
     ) {
       self.buffer = DemandBuffer(subscriber: downstream)
 
-      let cancellable = callback(
-        .init(
-          send: { [weak self] in _ = self?.buffer.buffer(value: $0) },
-          complete: { [weak self] in self?.buffer.complete(completion: $0) }
+      self.cancellable.setValue(
+        callback(
+          .init(
+            send: { [weak self] in _ = self?.buffer.buffer(value: $0) },
+            complete: { [weak self] in self?.buffer.complete(completion: $0) }
+          )
         )
       )
-
-      self.cancellable = cancellable
     }
 
     func request(_ demand: Subscribers.Demand) {
@@ -156,35 +159,35 @@ extension Publishers.Create {
     }
 
     func cancel() {
-      self.cancellable?.cancel()
+      self.cancellable.value?.cancel()
     }
   }
 }
 
 extension Publishers.Create.Subscription: CustomStringConvertible {
   var description: String {
-    return "Create.Subscription<\(Output.self), \(Failure.self)>"
+    return "Create.Subscription<\(Output.self)>"
   }
 }
 
 extension Effect {
-  public struct Subscriber {
-    private let _send: (Output) -> Void
-    private let _complete: (Subscribers.Completion<Failure>) -> Void
+  struct Subscriber: Sendable {
+    private let _send: @Sendable (Action) -> Void
+    private let _complete: @Sendable (Subscribers.Completion<Never>) -> Void
 
     init(
-      send: @escaping (Output) -> Void,
-      complete: @escaping (Subscribers.Completion<Failure>) -> Void
+      send: @escaping @Sendable (Action) -> Void,
+      complete: @escaping @Sendable (Subscribers.Completion<Never>) -> Void
     ) {
       self._send = send
       self._complete = complete
     }
 
-    public func send(_ value: Output) {
+    public func send(_ value: Action) {
       self._send(value)
     }
 
-    public func send(completion: Subscribers.Completion<Failure>) {
+    public func send(completion: Subscribers.Completion<Never>) {
       self._complete(completion)
     }
   }

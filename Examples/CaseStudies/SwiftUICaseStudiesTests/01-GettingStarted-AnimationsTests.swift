@@ -1,62 +1,104 @@
-import Combine
+import Clocks
 import ComposableArchitecture
-import XCTest
+import Testing
 
 @testable import SwiftUICaseStudies
 
-class AnimationTests: XCTestCase {
-  let scheduler = DispatchQueue.test
+@MainActor
+struct AnimationTests {
+  @Test
+  func rainbow() async {
+    let clock = TestClock()
 
-  func testRainbow() {
-    let store = TestStore(
-      initialState: AnimationsState(),
-      reducer: animationsReducer,
-      environment: AnimationsEnvironment(
-        mainQueue: self.scheduler.eraseToAnyScheduler()
-      )
-    )
+    let store = TestStore(initialState: Animations.State()) {
+      Animations()
+    } withDependencies: {
+      $0.continuousClock = clock
+    }
 
-    store.send(.rainbowButtonTapped)
-
-    store.receive(.setColor(.red)) {
+    await store.send(.rainbowButtonTapped)
+    await store.receive(\.setColor) {
       $0.circleColor = .red
     }
 
-    self.scheduler.advance(by: .seconds(1))
-    store.receive(.setColor(.blue)) {
+    await clock.advance(by: .seconds(1))
+    await store.receive(\.setColor) {
       $0.circleColor = .blue
     }
 
-    self.scheduler.advance(by: .seconds(1))
-    store.receive(.setColor(.green)) {
+    await clock.advance(by: .seconds(1))
+    await store.receive(\.setColor) {
       $0.circleColor = .green
     }
 
-    self.scheduler.advance(by: .seconds(1))
-    store.receive(.setColor(.orange)) {
+    await clock.advance(by: .seconds(1))
+    await store.receive(\.setColor) {
       $0.circleColor = .orange
     }
 
-    self.scheduler.advance(by: .seconds(1))
-    store.receive(.setColor(.pink)) {
+    await clock.advance(by: .seconds(1))
+    await store.receive(\.setColor) {
       $0.circleColor = .pink
     }
 
-    self.scheduler.advance(by: .seconds(1))
-    store.receive(.setColor(.purple)) {
+    await clock.advance(by: .seconds(1))
+    await store.receive(\.setColor) {
       $0.circleColor = .purple
     }
 
-    self.scheduler.advance(by: .seconds(1))
-    store.receive(.setColor(.yellow)) {
+    await clock.advance(by: .seconds(1))
+    await store.receive(\.setColor) {
       $0.circleColor = .yellow
     }
 
-    self.scheduler.advance(by: .seconds(1))
-    store.receive(.setColor(.white)) {
-      $0.circleColor = .white
+    await clock.advance(by: .seconds(1))
+    await store.receive(\.setColor) {
+      $0.circleColor = .black
     }
 
-    self.scheduler.run()
+    await clock.run(timeout: .seconds(7))
+  }
+
+  @Test
+  func reset() async {
+    let clock = TestClock()
+
+    let store = TestStore(initialState: Animations.State()) {
+      Animations()
+    } withDependencies: {
+      $0.continuousClock = clock
+    }
+
+    await store.send(.rainbowButtonTapped)
+    await store.receive(\.setColor) {
+      $0.circleColor = .red
+    }
+
+    await clock.advance(by: .seconds(1))
+    await store.receive(\.setColor) {
+      $0.circleColor = .blue
+    }
+
+    await store.send(.resetButtonTapped) {
+      $0.alert = AlertState {
+        TextState("Reset state?")
+      } actions: {
+        ButtonState(
+          role: .destructive,
+          action: .send(.resetConfirmationButtonTapped, animation: .default)
+        ) {
+          TextState("Reset")
+        }
+        ButtonState(role: .cancel) {
+          TextState("Cancel")
+        }
+      }
+    }
+
+    await store.send(\.alert.resetConfirmationButtonTapped) {
+      $0 = Animations.State()
+    }
+
+    await store.finish()
   }
 }

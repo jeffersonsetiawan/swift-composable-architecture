@@ -3,18 +3,14 @@ import SwiftUI
 
 @main
 struct TodosApp: App {
+  static let store = Store(initialState: Todos.State()) {
+    Todos()
+      ._printChanges()
+  }
+
   var body: some Scene {
     WindowGroup {
-      AppView(
-        store: Store(
-          initialState: AppState(),
-          reducer: appReducer,
-          environment: AppEnvironment(
-            mainQueue: .main,
-            uuid: UUID.init
-          )
-        )
-      )
+      AppView(store: Self.store)
     }
   }
 }

@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -14,7 +14,6 @@
 		CACC04222447C66C000C5725 /* Client.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACC04212447C66C000C5725 /* Client.swift */; };
 		CACC04242447D96D000C5725 /* Live.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACC04232447D96D000C5725 /* Live.swift */; };
 		CACC04272447DBAF000C5725 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACC04262447DBAF000C5725 /* Models.swift */; };
-		CACC04292447DF0B000C5725 /* Failing.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACC04282447DF0B000C5725 /* Failing.swift */; };
 		DC1394162469E34200EE1157 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = DC1394152469E34200EE1157 /* ComposableArchitecture */; };
 /* End PBXBuildFile section */
 
@@ -63,7 +62,6 @@
 		CACC04212447C66C000C5725 /* Client.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Client.swift; sourceTree = "<group>"; };
 		CACC04232447D96D000C5725 /* Live.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Live.swift; sourceTree = "<group>"; };
 		CACC04262447DBAF000C5725 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
-		CACC04282447DF0B000C5725 /* Failing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Failing.swift; sourceTree = "<group>"; };
 		DCB9EA3F26B21ED000497C03 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -131,7 +129,6 @@
 			children = (
 				CACC04212447C66C000C5725 /* Client.swift */,
 				CACC04232447D96D000C5725 /* Live.swift */,
-				CACC04282447DF0B000C5725 /* Failing.swift */,
 				CACC04262447DBAF000C5725 /* Models.swift */,
 			);
 			path = SpeechClient;
@@ -188,8 +185,9 @@
 		CA2332022447ACFA00B818EB /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1140;
-				LastUpgradeCheck = 1240;
+				LastUpgradeCheck = 1600;
 				ORGANIZATIONNAME = "Brandon Williams";
 				TargetAttributes = {
 					CA2332092447ACFA00B818EB = {
@@ -244,7 +242,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				CACC04242447D96D000C5725 /* Live.swift in Sources */,
-				CACC04292447DF0B000C5725 /* Failing.swift in Sources */,
 				CA2332102447ACFA00B818EB /* SpeechRecognitionApp.swift in Sources */,
 				CA2332122447ACFA00B818EB /* SpeechRecognition.swift in Sources */,
 				CACC04222447C66C000C5725 /* Client.swift in Sources */,
@@ -308,6 +305,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -328,6 +326,8 @@
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
 			};
 			name = Debug;
 		};
@@ -368,6 +368,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -381,6 +382,8 @@
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -398,7 +401,6 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = co.pointfree.SpeechRecognition;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -416,7 +418,6 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = co.pointfree.SpeechRecognition;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -424,7 +425,6 @@
 		CA23322D2447ACFC00B818EB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				INFOPLIST_FILE = SpeechRecognition/Info.plist;
@@ -435,7 +435,6 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = co.pointfree.SpeechRecognitionTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SpeechRecognition.app/SpeechRecognition";
 			};
@@ -444,7 +443,6 @@
 		CA23322E2447ACFC00B818EB /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				INFOPLIST_FILE = SpeechRecognition/Info.plist;
@@ -455,7 +453,6 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = co.pointfree.SpeechRecognitionTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SpeechRecognition.app/SpeechRecognition";
 			};

@@ -2,8 +2,8 @@ import ComposableArchitecture
 import SwiftUI
 import UIKit
 
-@UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+@main
+final class AppDelegate: UIResponder, UIApplicationDelegate {
   var window: UIWindow?
 
   func application(
@@ -11,11 +11,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     let contentView = RootView(
-      store: Store(
-        initialState: .init(),
-        reducer: rootReducer,
-        environment: .init()
-      )
+      store: Store(initialState: Root.State()) {
+        Root()
+      }
     )
 
     let window = UIWindow(frame: UIScreen.main.bounds)

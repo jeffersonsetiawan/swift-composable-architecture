@@ -3,180 +3,198 @@ import SwiftUI
 
 private let readMe = """
   This application demonstrates live-searching with the Composable Architecture. As you type the \
-  events are debounced for 300ms, and when you stop typing an API request is made to load \
-  locations. Then tapping on a location will load weather.
+  events are debounced for 300 milliseconds, and when you stop typing an API request is made to \
+  load locations. Then tapping on a location will load weather.
   """
 
-// MARK: - Search feature domain
+@Reducer
+struct Search {
+  @ObservableState
+  struct State: Equatable {
+    var results: [GeocodingSearch.Result] = []
+    var resultForecastRequestInFlight: GeocodingSearch.Result?
+    var searchQuery = ""
+    var weather: Weather?
 
-struct SearchState: Equatable {
-  var locations: [Location] = []
-  var locationWeather: LocationWeather?
-  var locationWeatherRequestInFlight: Location?
-  var searchQuery = ""
-}
+    struct Weather: Equatable {
+      var id: GeocodingSearch.Result.ID
+      var days: [Day]
 
-enum SearchAction: Equatable {
-  case locationsResponse(Result<[Location], WeatherClient.Failure>)
-  case locationTapped(Location)
-  case locationWeatherResponse(Result<LocationWeather, WeatherClient.Failure>)
-  case searchQueryChanged(String)
-}
-
-struct SearchEnvironment {
-  var weatherClient: WeatherClient
-  var mainQueue: AnySchedulerOf<DispatchQueue>
-}
-
-// MARK: - Search feature reducer
-
-let searchReducer = Reducer<SearchState, SearchAction, SearchEnvironment> {
-  state, action, environment in
-  switch action {
-  case .locationsResponse(.failure):
-    state.locations = []
-    return .none
-
-  case let .locationsResponse(.success(response)):
-    state.locations = response
-    return .none
-
-  case let .locationTapped(location):
-    struct SearchWeatherId: Hashable {}
-
-    state.locationWeatherRequestInFlight = location
-
-    return environment.weatherClient
-      .weather(location.id)
-      .receive(on: environment.mainQueue)
-      .catchToEffect(SearchAction.locationWeatherResponse)
-      .cancellable(id: SearchWeatherId(), cancelInFlight: true)
-
-  case let .searchQueryChanged(query):
-    struct SearchLocationId: Hashable {}
-
-    state.searchQuery = query
-
-    // When the query is cleared we can clear the search results, but we have to make sure to cancel
-    // any in-flight search requests too, otherwise we may get data coming in later.
-    guard !query.isEmpty else {
-      state.locations = []
-      state.locationWeather = nil
-      return .cancel(id: SearchLocationId())
+      struct Day: Equatable {
+        var date: Date
+        var temperatureMax: Double
+        var temperatureMaxUnit: String
+        var temperatureMin: Double
+        var temperatureMinUnit: String
+      }
     }
+  }
 
-    return environment.weatherClient
-      .searchLocation(query)
-      .debounce(id: SearchLocationId(), for: 0.3, scheduler: environment.mainQueue)
-      .catchToEffect(SearchAction.locationsResponse)
+  enum Action {
+    case forecastResponse(GeocodingSearch.Result.ID, Result<Forecast, any Error>)
+    case searchQueryChanged(String)
+    case searchQueryChangeDebounced
+    case searchResponse(Result<GeocodingSearch, any Error>)
+    case searchResultTapped(GeocodingSearch.Result)
+  }
 
-  case let .locationWeatherResponse(.failure(locationWeather)):
-    state.locationWeather = nil
-    state.locationWeatherRequestInFlight = nil
-    return .none
+  @Dependency(\.weatherClient) var weatherClient
+  private enum CancelID { case location, weather }
 
-  case let .locationWeatherResponse(.success(locationWeather)):
-    state.locationWeather = locationWeather
-    state.locationWeatherRequestInFlight = nil
-    return .none
+  var body: some Reducer<State, Action> {
+    Reduce { state, action in
+      switch action {
+      case .forecastResponse(_, .failure):
+        state.weather = nil
+        state.resultForecastRequestInFlight = nil
+        return .none
+
+      case let .forecastResponse(id, .success(forecast)):
+        state.weather = State.Weather(
+          id: id,
+          days: forecast.daily.time.indices.map {
+            State.Weather.Day(
+              date: forecast.daily.time[$0],
+              temperatureMax: forecast.daily.temperatureMax[$0],
+              temperatureMaxUnit: forecast.dailyUnits.temperatureMax,
+              temperatureMin: forecast.daily.temperatureMin[$0],
+              temperatureMinUnit: forecast.dailyUnits.temperatureMin
+            )
+          }
+        )
+        state.resultForecastRequestInFlight = nil
+        return .none
+
+      case let .searchQueryChanged(query):
+        state.searchQuery = query
+
+        // When the query is cleared we can clear the search results, but we have to make sure to
+        // cancel any in-flight search requests too, otherwise we may get data coming in later.
+        guard !state.searchQuery.isEmpty else {
+          state.results = []
+          state.weather = nil
+          return .cancel(id: CancelID.location)
+        }
+        return .none
+
+      case .searchQueryChangeDebounced:
+        guard !state.searchQuery.isEmpty else {
+          return .none
+        }
+        return .run { [query = state.searchQuery] send in
+          await send(.searchResponse(Result { try await self.weatherClient.search(query: query) }))
+        }
+        .cancellable(id: CancelID.location)
+
+      case .searchResponse(.failure):
+        state.results = []
+        return .none
+
+      case let .searchResponse(.success(response)):
+        state.results = response.results
+        return .none
+
+      case let .searchResultTapped(location):
+        state.resultForecastRequestInFlight = location
+
+        return .run { send in
+          await send(
+            .forecastResponse(
+              location.id,
+              Result { try await self.weatherClient.forecast(location: location) }
+            )
+          )
+        }
+        .cancellable(id: CancelID.weather, cancelInFlight: true)
+      }
+    }
   }
 }
 
-// MARK: - Search feature view
-
 struct SearchView: View {
-  let store: Store<SearchState, SearchAction>
+  @Bindable var store: StoreOf<Search>
 
   var body: some View {
-    WithViewStore(self.store) { viewStore in
-      NavigationView {
-        VStack(alignment: .leading) {
-          Text(readMe)
-            .padding()
+    NavigationStack {
+      VStack(alignment: .leading) {
+        Text(readMe)
+          .padding()
 
-          HStack {
-            Image(systemName: "magnifyingglass")
-            TextField(
-              "New York, San Francisco, ...",
-              text: viewStore.binding(
-                get: \.searchQuery, send: SearchAction.searchQueryChanged
-              )
-            )
-            .textFieldStyle(.roundedBorder)
-            .autocapitalization(.none)
-            .disableAutocorrection(true)
-          }
-          .padding(.horizontal, 16)
+        HStack {
+          Image(systemName: "magnifyingglass")
+          TextField(
+            "New York, San Francisco, ...", text: $store.searchQuery.sending(\.searchQueryChanged)
+          )
+          .textFieldStyle(.roundedBorder)
+          .autocapitalization(.none)
+          .disableAutocorrection(true)
+        }
+        .padding(.horizontal, 16)
 
-          List {
-            ForEach(viewStore.locations, id: \.id) { location in
-              VStack(alignment: .leading) {
-                Button(action: { viewStore.send(.locationTapped(location)) }) {
-                  HStack {
-                    Text(location.title)
+        List {
+          ForEach(store.results) { location in
+            VStack(alignment: .leading) {
+              Button {
+                store.send(.searchResultTapped(location))
+              } label: {
+                HStack {
+                  Text(location.name)
 
-                    if viewStore.locationWeatherRequestInFlight?.id == location.id {
-                      ProgressView()
-                    }
+                  if store.resultForecastRequestInFlight?.id == location.id {
+                    ProgressView()
                   }
                 }
+              }
 
-                if location.id == viewStore.locationWeather?.id {
-                  self.weatherView(locationWeather: viewStore.locationWeather)
-                }
+              if location.id == store.weather?.id {
+                weatherView(locationWeather: store.weather)
               }
             }
           }
-
-          Button("Weather API provided by MetaWeather.com") {
-            UIApplication.shared.open(URL(string: "http://www.MetaWeather.com")!)
-          }
-          .foregroundColor(.gray)
-          .padding(.all, 16)
         }
-        .navigationBarTitle("Search")
+
+        Button("Weather API provided by Open-Meteo") {
+          UIApplication.shared.open(URL(string: "https://open-meteo.com/en")!)
+        }
+        .foregroundColor(.gray)
+        .padding(.all, 16)
       }
-      .navigationViewStyle(.stack)
+      .navigationTitle("Search")
+    }
+    .task(id: store.searchQuery) {
+      do {
+        try await Task.sleep(for: .milliseconds(300))
+        await store.send(.searchQueryChangeDebounced).finish()
+      } catch {}
     }
   }
 
-  func weatherView(locationWeather: LocationWeather?) -> some View {
-    guard let locationWeather = locationWeather else {
-      return AnyView(EmptyView())
-    }
+  @ViewBuilder
+  func weatherView(locationWeather: Search.State.Weather?) -> some View {
+    if let locationWeather {
+      let days = locationWeather.days
+        .enumerated()
+        .map { idx, weather in formattedWeather(day: weather, isToday: idx == 0) }
 
-    let days = locationWeather.consolidatedWeather
-      .enumerated()
-      .map { idx, weather in formattedWeatherDay(weather, isToday: idx == 0) }
-
-    return AnyView(
       VStack(alignment: .leading) {
         ForEach(days, id: \.self) { day in
           Text(day)
         }
       }
       .padding(.leading, 16)
-    )
+    }
   }
 }
 
-// MARK: - Private helpers
-
-private func formattedWeatherDay(_ data: LocationWeather.ConsolidatedWeather, isToday: Bool)
-  -> String
-{
+private func formattedWeather(day: Search.State.Weather.Day, isToday: Bool) -> String {
   let date =
     isToday
     ? "Today"
-    : dateFormatter.string(from: data.applicableDate).capitalized
+    : dateFormatter.string(from: day.date).capitalized
+  let min = "\(day.temperatureMin)\(day.temperatureMinUnit)"
+  let max = "\(day.temperatureMax)\(day.temperatureMaxUnit)"
 
-  return [
-    date,
-    "\(Int(round(data.theTemp)))℃",
-    data.weatherStateName,
-  ]
-  .compactMap { $0 }
-  .joined(separator: ", ")
+  return "\(date), \(min) – \(max)"
 }
 
 private let dateFormatter: DateFormatter = {
@@ -185,62 +203,10 @@ private let dateFormatter: DateFormatter = {
   return formatter
 }()
 
-// MARK: - SwiftUI previews
-
-struct SearchView_Previews: PreviewProvider {
-  static var previews: some View {
-    let store = Store(
-      initialState: SearchState(),
-      reducer: searchReducer,
-      environment: SearchEnvironment(
-        weatherClient: WeatherClient(
-          searchLocation: { _ in
-            Effect(value: [
-              Location(id: 1, title: "Brooklyn"),
-              Location(id: 2, title: "Los Angeles"),
-              Location(id: 3, title: "San Francisco"),
-            ])
-          },
-          weather: { id in
-            Effect(
-              value: LocationWeather(
-                consolidatedWeather: [
-                  .init(
-                    applicableDate: Date(timeIntervalSince1970: 0),
-                    maxTemp: 90,
-                    minTemp: 70,
-                    theTemp: 80,
-                    weatherStateName: "Clear"
-                  ),
-                  .init(
-                    applicableDate: Date(timeIntervalSince1970: 86_400),
-                    maxTemp: 70,
-                    minTemp: 50,
-                    theTemp: 60,
-                    weatherStateName: "Rain"
-                  ),
-                  .init(
-                    applicableDate: Date(timeIntervalSince1970: 172_800),
-                    maxTemp: 100,
-                    minTemp: 80,
-                    theTemp: 90,
-                    weatherStateName: "Cloudy"
-                  ),
-                ],
-                id: id
-              )
-            )
-          }
-        ),
-        mainQueue: .main
-      )
-    )
-
-    return Group {
-      SearchView(store: store)
-
-      SearchView(store: store)
-        .environment(\.colorScheme, .dark)
+#Preview {
+  SearchView(
+    store: Store(initialState: Search.State()) {
+      Search()
     }
-  }
+  )
 }

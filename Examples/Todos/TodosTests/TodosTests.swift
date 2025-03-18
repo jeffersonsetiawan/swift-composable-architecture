@@ -1,88 +1,97 @@
 import ComposableArchitecture
-import XCTest
+import Foundation
+import Testing
 
 @testable import Todos
 
-class TodosTests: XCTestCase {
-  let scheduler = DispatchQueue.test
+@MainActor
+struct TodosTests {
+  let clock = TestClock()
 
-  func testAddTodo() {
-    let store = TestStore(
-      initialState: AppState(),
-      reducer: appReducer,
-      environment: AppEnvironment(
-        mainQueue: self.scheduler.eraseToAnyScheduler(),
-        uuid: UUID.incrementing
-      )
-    )
+  @Test
+  func add() async {
+    let store = TestStore(initialState: Todos.State()) {
+      Todos()
+    } withDependencies: {
+      $0.uuid = .incrementing
+    }
 
-    store.send(.addTodoButtonTapped) {
+    await store.send(.addTodoButtonTapped) {
       $0.todos.insert(
-        Todo(
+        Todo.State(
           description: "",
-          id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
+          id: UUID(0),
           isComplete: false
         ),
         at: 0
       )
     }
+
+    await store.send(.addTodoButtonTapped) {
+      $0.todos = [
+        Todo.State(
+          description: "",
+          id: UUID(1),
+          isComplete: false
+        ),
+        Todo.State(
+          description: "",
+          id: UUID(0),
+          isComplete: false
+        ),
+      ]
+    }
   }
 
-  func testEditTodo() {
-    let state = AppState(
+  @Test
+  func edit() async {
+    let state = Todos.State(
       todos: [
-        Todo(
+        Todo.State(
           description: "",
-          id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
+          id: UUID(0),
           isComplete: false
         )
       ]
     )
-    let store = TestStore(
-      initialState: state,
-      reducer: appReducer,
-      environment: AppEnvironment(
-        mainQueue: self.scheduler.eraseToAnyScheduler(),
-        uuid: UUID.incrementing
-      )
-    )
 
-    store.send(
-      .todo(id: state.todos[0].id, action: .textFieldChanged("Learn Composable Architecture"))
-    ) {
-      $0.todos[id: state.todos[0].id]?.description = "Learn Composable Architecture"
+    let store = TestStore(initialState: state) {
+      Todos()
+    }
+
+    await store.send(\.todos[id: UUID(0)].binding.description, "Learn Composable Architecture") {
+      $0.todos[id: UUID(0)]?.description = "Learn Composable Architecture"
     }
   }
 
-  func testCompleteTodo() {
-    let state = AppState(
+  @Test
+  func complete() async {
+    let state = Todos.State(
       todos: [
-        Todo(
+        Todo.State(
           description: "",
-          id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
+          id: UUID(0),
           isComplete: false
         ),
-        Todo(
+        Todo.State(
           description: "",
-          id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
+          id: UUID(1),
           isComplete: false
         ),
       ]
     )
-    let store = TestStore(
-      initialState: state,
-      reducer: appReducer,
-      environment: AppEnvironment(
-        mainQueue: self.scheduler.eraseToAnyScheduler(),
-        uuid: UUID.incrementing
-      )
-    )
 
-    store.send(.todo(id: state.todos[0].id, action: .checkBoxToggled)) {
-      $0.todos[id: state.todos[0].id]?.isComplete = true
+    let store = TestStore(initialState: state) {
+      Todos()
+    } withDependencies: {
+      $0.continuousClock = clock
     }
-    self.scheduler.advance(by: 1)
-    store.receive(.sortCompletedTodos) {
+
+    await store.send(\.todos[id: UUID(0)].binding.isComplete, true) {
+      $0.todos[id: UUID(0)]?.isComplete = true
+    }
+    await clock.advance(by: .seconds(1))
+    await store.receive(\.sortCompletedTodos) {
       $0.todos = [
         $0.todos[1],
         $0.todos[0],
@@ -90,102 +99,95 @@ class TodosTests: XCTestCase {
     }
   }
 
-  func testCompleteTodoDebounces() {
-    let state = AppState(
+  @Test
+  func completionDebounce() async {
+    let state = Todos.State(
       todos: [
-        Todo(
+        Todo.State(
           description: "",
-          id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
+          id: UUID(0),
           isComplete: false
         ),
-        Todo(
+        Todo.State(
           description: "",
-          id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
+          id: UUID(1),
           isComplete: false
         ),
       ]
     )
-    let store = TestStore(
-      initialState: state,
-      reducer: appReducer,
-      environment: AppEnvironment(
-        mainQueue: self.scheduler.eraseToAnyScheduler(),
-        uuid: UUID.incrementing
-      )
-    )
 
-    store.send(.todo(id: state.todos[0].id, action: .checkBoxToggled)) {
-      $0.todos[id: state.todos[0].id]?.isComplete = true
+    let store = TestStore(initialState: state) {
+      Todos()
+    } withDependencies: {
+      $0.continuousClock = clock
     }
-    self.scheduler.advance(by: 0.5)
-    store.send(.todo(id: state.todos[0].id, action: .checkBoxToggled)) {
-      $0.todos[id: state.todos[0].id]?.isComplete = false
+
+    await store.send(\.todos[id: UUID(0)].binding.isComplete, true) {
+      $0.todos[id: UUID(0)]?.isComplete = true
     }
-    self.scheduler.advance(by: 1)
-    store.receive(.sortCompletedTodos)
+    await clock.advance(by: .milliseconds(500))
+    await store.send(\.todos[id: UUID(0)].binding.isComplete, false) {
+      $0.todos[id: UUID(0)]?.isComplete = false
+    }
+    await clock.advance(by: .seconds(1))
+    await store.receive(\.sortCompletedTodos)
   }
 
-  func testClearCompleted() {
-    let state = AppState(
+  @Test
+  func clearCompleted() async {
+    let state = Todos.State(
       todos: [
-        Todo(
+        Todo.State(
           description: "",
-          id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
+          id: UUID(0),
           isComplete: false
         ),
-        Todo(
+        Todo.State(
           description: "",
-          id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
+          id: UUID(1),
           isComplete: true
         ),
       ]
     )
-    let store = TestStore(
-      initialState: state,
-      reducer: appReducer,
-      environment: AppEnvironment(
-        mainQueue: self.scheduler.eraseToAnyScheduler(),
-        uuid: UUID.incrementing
-      )
-    )
 
-    store.send(.clearCompletedButtonTapped) {
+    let store = TestStore(initialState: state) {
+      Todos()
+    }
+
+    await store.send(.clearCompletedButtonTapped) {
       $0.todos = [
         $0.todos[0]
       ]
     }
   }
 
-  func testDelete() {
-    let state = AppState(
+  @Test
+  func delete() async {
+    let state = Todos.State(
       todos: [
-        Todo(
+        Todo.State(
           description: "",
-          id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
+          id: UUID(0),
           isComplete: false
         ),
-        Todo(
+        Todo.State(
           description: "",
-          id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
+          id: UUID(1),
           isComplete: false
         ),
-        Todo(
+        Todo.State(
           description: "",
-          id: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!,
+          id: UUID(2),
           isComplete: false
         ),
       ]
     )
-    let store = TestStore(
-      initialState: state,
-      reducer: appReducer,
-      environment: AppEnvironment(
-        mainQueue: self.scheduler.eraseToAnyScheduler(),
-        uuid: UUID.incrementing
-      )
-    )
 
-    store.send(.delete([1])) {
+    let store = TestStore(initialState: state) {
+      Todos()
+    }
+
+    await store.send(.delete([1])) {
       $0.todos = [
         $0.todos[0],
         $0.todos[2],
@@ -193,141 +195,161 @@ class TodosTests: XCTestCase {
     }
   }
 
-  func testEditModeMoving() {
-    let state = AppState(
+  @Test
+  func filteredDelete() async {
+    let state = Todos.State(
+      filter: .completed,
       todos: [
-        Todo(
+        Todo.State(
           description: "",
-          id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
+          id: UUID(0),
           isComplete: false
         ),
-        Todo(
+        Todo.State(
           description: "",
-          id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
+          id: UUID(1),
           isComplete: false
         ),
-        Todo(
+        Todo.State(
           description: "",
-          id: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!,
+          id: UUID(2),
+          isComplete: true
+        ),
+      ]
+    )
+
+    let store = TestStore(initialState: state) {
+      Todos()
+    }
+
+    await store.send(.delete([0])) {
+      $0.todos = [
+        $0.todos[0],
+        $0.todos[1],
+      ]
+    }
+  }
+
+  @Test
+  func editModeMove() async {
+    let state = Todos.State(
+      todos: [
+        Todo.State(
+          description: "",
+          id: UUID(0),
+          isComplete: false
+        ),
+        Todo.State(
+          description: "",
+          id: UUID(1),
+          isComplete: false
+        ),
+        Todo.State(
+          description: "",
+          id: UUID(2),
           isComplete: false
         ),
       ]
     )
-    let store = TestStore(
-      initialState: state,
-      reducer: appReducer,
-      environment: AppEnvironment(
-        mainQueue: self.scheduler.eraseToAnyScheduler(),
-        uuid: UUID.incrementing
-      )
-    )
 
-    store.send(.editModeChanged(.active)) {
+    let store = TestStore(initialState: state) {
+      Todos()
+    } withDependencies: {
+      $0.continuousClock = clock
+    }
+
+    await store.send(\.binding.editMode, .active) {
       $0.editMode = .active
     }
-    store.send(.move([0], 2)) {
+    await store.send(.move([0], 2)) {
       $0.todos = [
         $0.todos[1],
         $0.todos[0],
         $0.todos[2],
       ]
     }
-    self.scheduler.advance(by: .milliseconds(100))
-    store.receive(.sortCompletedTodos)
+    await clock.advance(by: .milliseconds(100))
+    await store.receive(\.sortCompletedTodos)
   }
 
-  func testEditModeMovingWithFilter() {
-    let state = AppState(
+  @Test
+  func filteredEditModeMove() async {
+    let state = Todos.State(
       todos: [
-        Todo(
+        Todo.State(
           description: "",
-          id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
+          id: UUID(0),
           isComplete: false
         ),
-        Todo(
+        Todo.State(
           description: "",
-          id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
+          id: UUID(1),
+          isComplete: false
+        ),
+        Todo.State(
+          description: "",
+          id: UUID(2),
           isComplete: true
         ),
-        Todo(
+        Todo.State(
           description: "",
-          id: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!,
-          isComplete: false
-        ),
-        Todo(
-          description: "",
-          id: UUID(uuidString: "00000000-0000-0000-0000-000000000003")!,
+          id: UUID(3),
           isComplete: true
         ),
       ]
     )
-    let store = TestStore(
-      initialState: state,
-      reducer: appReducer,
-      environment: AppEnvironment(
-        mainQueue: self.scheduler.eraseToAnyScheduler(),
-        uuid: UUID.incrementing
-      )
-    )
 
-    store.send(.editModeChanged(.active)) {
+    let store = TestStore(initialState: state) {
+      Todos()
+    } withDependencies: {
+      $0.continuousClock = clock
+      $0.uuid = .incrementing
+    }
+
+    await store.send(\.binding.editMode, .active) {
       $0.editMode = .active
     }
-    store.send(.filterPicked(.completed)) {
+    await store.send(\.binding.filter, .completed) {
       $0.filter = .completed
     }
-    store.send(.move([0], 1)) {
+    await store.send(.move([0], 2)) {
       $0.todos = [
         $0.todos[0],
-        $0.todos[2],
         $0.todos[1],
         $0.todos[3],
+        $0.todos[2],
       ]
     }
-    self.scheduler.advance(by: .milliseconds(100))
-    store.receive(.sortCompletedTodos)
+    await clock.advance(by: .milliseconds(100))
+    await store.receive(\.sortCompletedTodos)
   }
 
-  func testFilteredEdit() {
-    let state = AppState(
+  @Test
+  func filteredEdit() async {
+    let state = Todos.State(
       todos: [
-        Todo(
+        Todo.State(
           description: "",
-          id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
+          id: UUID(0),
           isComplete: false
         ),
-        Todo(
+        Todo.State(
           description: "",
-          id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
+          id: UUID(1),
           isComplete: true
         ),
       ]
     )
-    let store = TestStore(
-      initialState: state,
-      reducer: appReducer,
-      environment: AppEnvironment(
-        mainQueue: self.scheduler.eraseToAnyScheduler(),
-        uuid: UUID.incrementing
-      )
-    )
 
-    store.send(.filterPicked(.completed)) {
+    let store = TestStore(initialState: state) {
+      Todos()
+    }
+
+    await store.send(\.binding.filter, .completed) {
       $0.filter = .completed
     }
-    store.send(.todo(id: state.todos[1].id, action: .textFieldChanged("Did this already"))) {
-      $0.todos[id: state.todos[1].id]?.description = "Did this already"
-    }
-  }
-}
-
-extension UUID {
-  // A deterministic, auto-incrementing "UUID" generator for testing.
-  static var incrementing: () -> UUID {
-    var uuid = 0
-    return {
-      defer { uuid += 1 }
-      return UUID(uuidString: "00000000-0000-0000-0000-\(String(format: "%012x", uuid))")!
+    await store.send(\.todos[id: UUID(1)].binding.description, "Did this already") {
+      $0.todos[id: UUID(1)]?.description = "Did this already"
     }
   }
 }

@@ -1,7 +1,6 @@
-import SwiftUI
 import UIKit
 
-class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
   var window: UIWindow?
 
   func scene(
@@ -9,15 +8,15 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     willConnectTo session: UISceneSession,
     options connectionOptions: UIScene.ConnectionOptions
   ) {
-    self.window = (scene as? UIWindowScene).map(UIWindow.init(windowScene:))
+    self.window = (scene as? UIWindowScene).map { UIWindow(windowScene: $0) }
     self.window?.rootViewController = UINavigationController(
       rootViewController: RootViewController())
     self.window?.makeKeyAndVisible()
   }
 }
 
-@UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+@main
+final class AppDelegate: UIResponder, UIApplicationDelegate {
   func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?

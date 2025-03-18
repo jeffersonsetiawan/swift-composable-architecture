@@ -1,49 +1,38 @@
 import ComposableArchitecture
-import Foundation
 import SwiftUI
 
-struct Todo: Equatable, Identifiable {
-  var description = ""
-  let id: UUID
-  var isComplete = false
-}
+@Reducer
+struct Todo {
+  @ObservableState
+  struct State: Equatable, Identifiable {
+    var description = ""
+    let id: UUID
+    var isComplete = false
+  }
 
-enum TodoAction: Equatable {
-  case checkBoxToggled
-  case textFieldChanged(String)
-}
+  enum Action: BindableAction, Sendable {
+    case binding(BindingAction<State>)
+  }
 
-struct TodoEnvironment {}
-
-let todoReducer = Reducer<Todo, TodoAction, TodoEnvironment> { todo, action, _ in
-  switch action {
-  case .checkBoxToggled:
-    todo.isComplete.toggle()
-    return .none
-
-  case let .textFieldChanged(description):
-    todo.description = description
-    return .none
+  var body: some Reducer<State, Action> {
+    BindingReducer()
   }
 }
 
 struct TodoView: View {
-  let store: Store<Todo, TodoAction>
+  @Bindable var store: StoreOf<Todo>
 
   var body: some View {
-    WithViewStore(self.store) { viewStore in
-      HStack {
-        Button(action: { viewStore.send(.checkBoxToggled) }) {
-          Image(systemName: viewStore.isComplete ? "checkmark.square" : "square")
-        }
-        .buttonStyle(.plain)
-
-        TextField(
-          "Untitled Todo",
-          text: viewStore.binding(get: \.description, send: TodoAction.textFieldChanged)
-        )
+    HStack {
+      Button {
+        store.isComplete.toggle()
+      } label: {
+        Image(systemName: store.isComplete ? "checkmark.square" : "square")
       }
-      .foregroundColor(viewStore.isComplete ? .gray : nil)
+      .buttonStyle(.plain)
+
+      TextField("Untitled Todo", text: $store.description)
     }
+    .foregroundColor(store.isComplete ? .gray : nil)
   }
 }
