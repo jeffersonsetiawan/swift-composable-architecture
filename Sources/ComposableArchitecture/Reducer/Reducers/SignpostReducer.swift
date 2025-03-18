@@ -1,6 +1,6 @@
 import OSLog
 
-extension Reducer {
+extension Reducer2 {
   /// Instruments a reducer with
   /// [signposts](https://developer.apple.com/documentation/os/logging/recording_performance_data).
   ///
@@ -33,7 +33,7 @@ extension Reducer {
   }
 }
 
-public struct _SignpostReducer<Base: Reducer>: Reducer {
+public struct _SignpostReducer<Base: Reducer2>: Reducer2 {
   @usableFromInline
   let base: Base
 

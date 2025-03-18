@@ -8,7 +8,7 @@ public final class RootStore {
   let didSet = CurrentValueRelay(())
   @_spi(Internals) public var effectCancellables: [UUID: AnyCancellable] = [:]
   private var isSending = false
-  private let reducer: any Reducer
+  private let reducer: any Reducer2
   private(set) var state: Any {
     didSet {
       didSet.send(())
@@ -17,14 +17,14 @@ public final class RootStore {
 
   init<State, Action>(
     initialState: State,
-    reducer: some Reducer<State, Action>
+    reducer: some Reducer2<State, Action>
   ) {
     self.state = initialState
     self.reducer = reducer
   }
 
   func send(_ action: Any, originatingFrom originatingAction: Any? = nil) -> Task<Void, Never>? {
-    func open<State, Action>(reducer: some Reducer<State, Action>) -> Task<Void, Never>? {
+    func open<State, Action>(reducer: some Reducer2<State, Action>) -> Task<Void, Never>? {
       self.bufferedActions.append(action)
       guard !self.isSending else { return nil }
 

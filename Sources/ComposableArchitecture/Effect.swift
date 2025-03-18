@@ -32,7 +32,7 @@ public struct Effect2<Action>: Sendable {
 /// ```swift
 /// let effect: EffectOf<Feature>
 /// ```
-public typealias EffectOf<R: Reducer> = Effect2<R.Action>
+public typealias EffectOf<R: Reducer2> = Effect2<R.Action>
 
 // MARK: - Creating Effects
 

@@ -1,4 +1,4 @@
-extension Reducer {
+extension Reducer2 {
   /// Embeds a child reducer in a parent domain that works on a case of parent enum state.
   ///
   /// For example, if a parent feature's state is expressed as an enum of multiple children
@@ -56,7 +56,7 @@ extension Reducer {
   /// - Returns: A reducer that combines the child reducer with the parent reducer.
   @inlinable
   @warn_unqualified_access
-  public func ifCaseLet<CaseState, CaseAction, Case: Reducer>(
+  public func ifCaseLet<CaseState, CaseAction, Case: Reducer2>(
     _ toCaseState: CaseKeyPath<State, CaseState>,
     action toCaseAction: CaseKeyPath<Action, CaseAction>,
     @ReducerBuilder<CaseState, CaseAction> then case: () -> Case,
@@ -109,7 +109,7 @@ extension Reducer {
   )
   @inlinable
   @warn_unqualified_access
-  public func ifCaseLet<CaseState, CaseAction, Case: Reducer<CaseState, CaseAction>>(
+  public func ifCaseLet<CaseState, CaseAction, Case: Reducer2<CaseState, CaseAction>>(
     _ toCaseState: AnyCasePath<State, CaseState>,
     action toCaseAction: AnyCasePath<Action, CaseAction>,
     @ReducerBuilder<CaseState, CaseAction> then case: () -> Case,
@@ -117,7 +117,7 @@ extension Reducer {
     filePath: StaticString = #filePath,
     line: UInt = #line,
     column: UInt = #column
-  ) -> some Reducer<State, Action> {
+  ) -> some Reducer2<State, Action> {
     _IfCaseLetReducer(
       parent: self,
       child: `case`(),
@@ -131,7 +131,7 @@ extension Reducer {
   }
 }
 
-public struct _IfCaseLetReducer<Parent: Reducer, Child: Reducer>: Reducer {
+public struct _IfCaseLetReducer<Parent: Reducer2, Child: Reducer2>: Reducer2 {
   @usableFromInline
   let parent: Parent
 

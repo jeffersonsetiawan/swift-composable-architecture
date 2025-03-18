@@ -14,7 +14,7 @@ import Observation
   named(scope)
 )
 @attached(memberAttribute)
-@attached(extension, conformances: Reducer, CaseReducer)
+@attached(extension, conformances: Reducer2, CaseReducer)
 public macro Reducer() =
   #externalMacro(
     module: "ComposableArchitectureMacros", type: "ReducerMacro"
@@ -37,7 +37,7 @@ public macro Reducer() =
   named(scope)
 )
 @attached(memberAttribute)
-@attached(extension, conformances: Reducer, CaseReducer)
+@attached(extension, conformances: Reducer2, CaseReducer)
 #if compiler(>=6)
   @available(iOS, deprecated: 9999, message: "Define your conformance via extension, instead.")@available(
     macOS, deprecated: 9999, message: "Define your conformance via extension, instead."
@@ -204,7 +204,7 @@ public macro Presents() =
 ///   }
 ///   ```
 @attached(extension, conformances: ViewActionSending)
-public macro ViewAction<R: Reducer>(for: R.Type) =
+public macro ViewAction<R: Reducer2>(for: R.Type) =
   #externalMacro(
     module: "ComposableArchitectureMacros", type: "ViewActionMacro"
   ) where R.Action: ViewAction

@@ -147,7 +147,7 @@ public func InMemoryFileStorage() -> FileStorage { .inMemory }
 public typealias EffectTask = Effect2
 
 @available(*, unavailable, renamed: "Reducer")
-public typealias ReducerProtocol = Reducer
+public typealias ReducerProtocol = Reducer2
 
 @available(*, unavailable, renamed: "ReducerOf")
-public typealias ReducerProtocolOf<R: Reducer> = Reducer<R.State, R.Action>
+public typealias ReducerProtocolOf<R: Reducer2> = Reducer2<R.State, R.Action>

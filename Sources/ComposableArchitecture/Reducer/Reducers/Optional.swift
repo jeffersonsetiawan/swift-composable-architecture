@@ -1,4 +1,4 @@
-extension Optional: Reducer where Wrapped: Reducer {
+extension Optional: Reducer2 where Wrapped: Reducer2 {
   @inlinable
   public func reduce(
     into state: inout Wrapped.State, action: Wrapped.Action

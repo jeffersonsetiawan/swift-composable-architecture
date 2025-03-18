@@ -55,10 +55,10 @@ extension IdentifiedAction: Encodable where ID: Encodable, Action: Encodable {}
 /// ```swift
 /// case rows(IdentifiedActionOf<ChildFeature>)
 /// ```
-public typealias IdentifiedActionOf<R: Reducer> = IdentifiedAction<R.State.ID, R.Action>
+public typealias IdentifiedActionOf<R: Reducer2> = IdentifiedAction<R.State.ID, R.Action>
 where R.State: Identifiable
 
-extension Reducer {
+extension Reducer2 {
   /// Embeds a child reducer in a parent domain that works on elements of a collection in parent
   /// state.
   ///
@@ -118,7 +118,7 @@ extension Reducer {
   @inlinable
   @warn_unqualified_access
   public func forEach<
-    ElementState, ElementAction, ID: Hashable, Element: Reducer<ElementState, ElementAction>
+    ElementState, ElementAction, ID: Hashable, Element: Reducer2<ElementState, ElementAction>
   >(
     _ toElementsState: WritableKeyPath<State, IdentifiedArray<ID, ElementState>>,
     action toElementAction: CaseKeyPath<Action, IdentifiedAction<ID, ElementAction>>,
@@ -127,7 +127,7 @@ extension Reducer {
     filePath: StaticString = #filePath,
     line: UInt = #line,
     column: UInt = #column
-  ) -> some Reducer<State, Action> {
+  ) -> some Reducer2<State, Action> {
     _ForEachReducer(
       parent: self,
       toElementsState: toElementsState,
@@ -170,7 +170,7 @@ extension Reducer {
     ElementState,
     ElementAction,
     ID: Hashable & Sendable,
-    Element: Reducer<ElementState, ElementAction>
+    Element: Reducer2<ElementState, ElementAction>
   >(
     _ toElementsState: WritableKeyPath<State, IdentifiedArray<ID, ElementState>>,
     action toElementAction: AnyCasePath<Action, (ID, ElementAction)>,
@@ -179,7 +179,7 @@ extension Reducer {
     filePath: StaticString = #filePath,
     line: UInt = #line,
     column: UInt = #column
-  ) -> some Reducer<State, Action> {
+  ) -> some Reducer2<State, Action> {
     _ForEachReducer(
       parent: self,
       toElementsState: toElementsState,
@@ -197,8 +197,8 @@ extension Reducer {
 }
 
 public struct _ForEachReducer<
-  Parent: Reducer, ID: Hashable & Sendable, Element: Reducer
->: Reducer {
+  Parent: Reducer2, ID: Hashable & Sendable, Element: Reducer2
+>: Reducer2 {
   @usableFromInline
   let parent: Parent
 

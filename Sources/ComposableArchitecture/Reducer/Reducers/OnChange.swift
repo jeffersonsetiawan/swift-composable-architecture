@@ -1,4 +1,4 @@
-extension Reducer {
+extension Reducer2 {
   /// Adds a reducer to run when this reducer changes the given value in state.
   ///
   /// Use this operator to trigger additional logic when a value changes, like when a
@@ -52,7 +52,7 @@ extension Reducer {
   /// - Returns: A reducer that performs the logic when the state changes.
   @available(*, deprecated, message: "Use 'onChange(of:)' with and equatable value, instead.")
   @inlinable
-  public func onChange<V, R: Reducer>(
+  public func onChange<V, R: Reducer2>(
     of toValue: @escaping (State) -> V,
     removeDuplicates isDuplicate: @escaping (V, V) -> Bool,
     @ReducerBuilder<State, Action> _ reducer: @escaping (_ oldValue: V, _ newValue: V) -> R
@@ -110,7 +110,7 @@ extension Reducer {
   ///     - `newValue`: The new value that failed the comparison check.
   /// - Returns: A reducer that performs the logic when the state changes.
   @inlinable
-  public func onChange<V: Equatable, R: Reducer>(
+  public func onChange<V: Equatable, R: Reducer2>(
     of toValue: @escaping (State) -> V,
     @ReducerBuilder<State, Action> _ reducer: @escaping (_ oldValue: V, _ newValue: V) -> R
   ) -> _OnChangeReducer<Self, V, R> {
@@ -118,7 +118,7 @@ extension Reducer {
   }
 }
 
-public struct _OnChangeReducer<Base: Reducer, Value, Body: Reducer>: Reducer
+public struct _OnChangeReducer<Base: Reducer2, Value, Body: Reducer2>: Reducer2
 where Base.State == Body.State, Base.Action == Body.Action {
   @usableFromInline
   let base: Base

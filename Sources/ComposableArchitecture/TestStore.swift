@@ -530,7 +530,7 @@ public final class TestStore2<State: Equatable, Action> {
   ///   - column: The column.
   public init(
     initialState: @autoclosure () -> State,
-    reducer: () -> some Reducer<State, Action>,
+    reducer: () -> some Reducer2<State, Action>,
     withDependencies prepareDependencies: (inout DependencyValues) -> Void = { _ in },
     fileID: StaticString = #fileID,
     file filePath: StaticString = #filePath,
@@ -849,7 +849,7 @@ public final class TestStore2<State: Equatable, Action> {
 /// ```swift
 /// let testStore: TestStoreOf<Feature>
 /// ```
-public typealias TestStoreOf<R: Reducer> = TestStore2<R.State, R.Action> where R.State: Equatable
+public typealias TestStoreOf<R: Reducer2> = TestStore2<R.State, R.Action> where R.State: Equatable
 
 extension TestStore2 {
   /// Sends an action to the store and asserts when state changes.
@@ -2805,7 +2805,7 @@ public struct TestStoreTask: Hashable, Sendable {
   }
 }
 
-class TestReducer<State: Equatable, Action>: Reducer {
+class TestReducer<State: Equatable, Action>: Reducer2 {
   let base: Reduce<State, Action>
   var dependencies: DependencyValues
   let effectDidSubscribe = AsyncStream.makeStream(of: Void.self)

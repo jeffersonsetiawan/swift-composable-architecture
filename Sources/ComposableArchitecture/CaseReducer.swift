@@ -2,8 +2,8 @@
 ///
 /// You should not conform to this protocol directly. Instead, the ``Reducer()`` macro will add a
 /// conformance to enums.
-public protocol CaseReducer<State, Action>: Reducer
-where State: CaseReducerState, Body: Reducer, Body.State == State, Body.Action == Action {
+public protocol CaseReducer<State, Action>: Reducer2
+where State: CaseReducerState, Body: Reducer2, Body.State == State, Body.Action == Action {
   associatedtype State = State
   associatedtype Action = Action
   associatedtype Body = Body
@@ -31,13 +31,13 @@ public protocol CaseReducerState {
   associatedtype StateReducer: CaseReducer where StateReducer.State == Self
 }
 
-extension Reducer {
+extension Reducer2 {
   /// A special overload of ``Reducer/ifLet(_:action:destination:fileID:filePath:line:column:)-4ub6q`` for enum
   /// reducers.
   public func ifLet<ChildState: CaseReducerState, ChildAction>(
     _ state: WritableKeyPath<State, PresentationState<ChildState>>,
     action: CaseKeyPath<Action, PresentationAction<ChildAction>>
-  ) -> some ReducerOf<Self> where ChildState.StateReducer.Action == ChildAction {
+  ) -> some Reducer2Of<Self> where ChildState.StateReducer.Action == ChildAction {
     self.ifLet(state, action: action) {
       ChildState.StateReducer.body
     }
@@ -48,7 +48,7 @@ extension Reducer {
   public func forEach<DestinationState: CaseReducerState, DestinationAction>(
     _ state: WritableKeyPath<State, StackState<DestinationState>>,
     action: CaseKeyPath<Action, StackAction<DestinationState, DestinationAction>>
-  ) -> some ReducerOf<Self> where DestinationState.StateReducer.Action == DestinationAction {
+  ) -> some Reducer2Of<Self> where DestinationState.StateReducer.Action == DestinationAction {
     self.forEach(state, action: action) {
       DestinationState.StateReducer.body
     }

@@ -310,7 +310,7 @@ extension StackAction: Equatable where State: Equatable, Action: Equatable {}
 extension StackAction: Hashable where State: Hashable, Action: Hashable {}
 extension StackAction: Sendable where State: Sendable, Action: Sendable {}
 
-extension Reducer {
+extension Reducer2 {
   /// Embeds a child reducer in a parent domain that works on elements of a navigation stack in
   /// parent state.
   ///
@@ -377,7 +377,7 @@ extension Reducer {
   @inlinable
   @warn_unqualified_access
   public func forEach<
-    DestinationState, DestinationAction, Destination: Reducer<DestinationState, DestinationAction>
+    DestinationState, DestinationAction, Destination: Reducer2<DestinationState, DestinationAction>
   >(
     _ toStackState: WritableKeyPath<State, StackState<DestinationState>>,
     action toStackAction: CaseKeyPath<Action, StackAction<DestinationState, DestinationAction>>,
@@ -386,7 +386,7 @@ extension Reducer {
     filePath: StaticString = #filePath,
     line: UInt = #line,
     column: UInt = #column
-  ) -> some Reducer<State, Action> {
+  ) -> some Reducer2<State, Action> {
     _StackReducer(
       base: self,
       toStackState: toStackState,
@@ -426,7 +426,7 @@ extension Reducer {
   @inlinable
   @warn_unqualified_access
   public func forEach<
-    DestinationState, DestinationAction, Destination: Reducer<DestinationState, DestinationAction>
+    DestinationState, DestinationAction, Destination: Reducer2<DestinationState, DestinationAction>
   >(
     _ toStackState: WritableKeyPath<State, StackState<DestinationState>>,
     action toStackAction: AnyCasePath<Action, StackAction<DestinationState, DestinationAction>>,
@@ -435,7 +435,7 @@ extension Reducer {
     filePath: StaticString = #filePath,
     line: UInt = #line,
     column: UInt = #column
-  ) -> some Reducer<State, Action> {
+  ) -> some Reducer2<State, Action> {
     _StackReducer(
       base: self,
       toStackState: toStackState,
@@ -462,9 +462,9 @@ extension Reducer {
 /// ```swift
 ///     case path(StackActionOf<Path>)
 /// ```
-public typealias StackActionOf<R: Reducer> = StackAction<R.State, R.Action>
+public typealias StackActionOf<R: Reducer2> = StackAction<R.State, R.Action>
 
-public struct _StackReducer<Base: Reducer, Destination: Reducer>: Reducer {
+public struct _StackReducer<Base: Reducer2, Destination: Reducer2>: Reducer2 {
   let base: Base
   let toStackState: WritableKeyPath<Base.State, StackState<Destination.State>>
   let toStackAction: AnyCasePath<Base.Action, StackAction<Destination.State, Destination.Action>>

@@ -584,7 +584,7 @@ public final class ViewStore<ViewState, ViewAction>: ObservableObject {
 /// ```swift
 /// let viewStore: ViewStoreOf<Feature>
 /// ```
-public typealias ViewStoreOf<R: Reducer> = ViewStore<R.State, R.Action>
+public typealias ViewStoreOf<R: Reducer2> = ViewStore<R.State, R.Action>
 
 extension ViewStore where ViewState: Equatable {
   /// Initializes a view store from a store which observes changes to state.

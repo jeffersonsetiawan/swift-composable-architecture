@@ -162,7 +162,7 @@ public final class Store2<State, Action> {
   ///   - reducer: The reducer that powers the business logic of the application.
   ///   - prepareDependencies: A closure that can be used to override dependencies that will be accessed
   ///     by the reducer.
-  public convenience init<R: Reducer<State, Action>>(
+  public convenience init<R: Reducer2<State, Action>>(
     initialState: @autoclosure () -> R.State,
     @ReducerBuilder<State, Action> reducer: () -> R,
     withDependencies prepareDependencies: ((inout DependencyValues) -> Void)? = nil
@@ -406,7 +406,7 @@ public final class Store2<State, Action> {
     }
   }
 
-  convenience init<R: Reducer>(
+  convenience init<R: Reducer2>(
     initialState: R.State,
     reducer: R
   )
@@ -469,7 +469,7 @@ extension Store2: CustomDebugStringConvertible {
 /// ```swift
 /// let store: StoreOf<Feature>
 /// ```
-public typealias StoreOf<R: Reducer> = Store2<R.State, R.Action>
+public typealias StoreOf<R: Reducer2> = Store2<R.State, R.Action>
 
 /// A publisher of store state.
 @dynamicMemberLookup

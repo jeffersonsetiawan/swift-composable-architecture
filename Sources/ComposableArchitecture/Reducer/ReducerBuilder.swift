@@ -9,78 +9,78 @@
 public enum ReducerBuilder<State, Action> {
   @inlinable
   public static func buildArray(
-    _ reducers: [some Reducer<State, Action>]
-  ) -> some Reducer<State, Action> {
+    _ reducers: [some Reducer2<State, Action>]
+  ) -> some Reducer2<State, Action> {
     _SequenceMany(reducers: reducers)
   }
 
   @inlinable
-  public static func buildBlock() -> some Reducer<State, Action> {
+  public static func buildBlock() -> some Reducer2<State, Action> {
     EmptyReducer()
   }
 
   @inlinable
-  public static func buildBlock<R: Reducer<State, Action>>(_ reducer: R) -> R {
+  public static func buildBlock<R: Reducer2<State, Action>>(_ reducer: R) -> R {
     reducer
   }
 
   @inlinable
-  public static func buildEither<R0: Reducer<State, Action>, R1: Reducer<State, Action>>(
+  public static func buildEither<R0: Reducer2<State, Action>, R1: Reducer2<State, Action>>(
     first reducer: R0
   ) -> _Conditional<R0, R1> {
     .first(reducer)
   }
 
   @inlinable
-  public static func buildEither<R0: Reducer<State, Action>, R1: Reducer<State, Action>>(
+  public static func buildEither<R0: Reducer2<State, Action>, R1: Reducer2<State, Action>>(
     second reducer: R1
   ) -> _Conditional<R0, R1> {
     .second(reducer)
   }
 
   @inlinable
-  public static func buildExpression<R: Reducer<State, Action>>(_ expression: R) -> R {
+  public static func buildExpression<R: Reducer2<State, Action>>(_ expression: R) -> R {
     expression
   }
 
   @inlinable
   @_disfavoredOverload
   public static func buildExpression(
-    _ expression: any Reducer<State, Action>
+    _ expression: any Reducer2<State, Action>
   ) -> Reduce<State, Action> {
     Reduce(expression)
   }
 
   @inlinable
-  public static func buildFinalResult<R: Reducer<State, Action>>(_ reducer: R) -> R {
+  public static func buildFinalResult<R: Reducer2<State, Action>>(_ reducer: R) -> R {
     reducer
   }
 
   @inlinable
   public static func buildLimitedAvailability(
-    _ wrapped: some Reducer<State, Action>
+    _ wrapped: some Reducer2<State, Action>
   ) -> Reduce<State, Action> {
     Reduce(wrapped)
   }
 
   @inlinable
-  public static func buildOptional<R: Reducer<State, Action>>(_ wrapped: R?) -> R? {
+  public static func buildOptional<R: Reducer2<State, Action>>(_ wrapped: R?) -> R? {
     wrapped
   }
 
   @inlinable
-  public static func buildPartialBlock<R: Reducer<State, Action>>(first: R) -> R {
+  public static func buildPartialBlock<R: Reducer2<State, Action>>(first: R) -> R {
     first
   }
 
   @inlinable
-  public static func buildPartialBlock<R0: Reducer<State, Action>, R1: Reducer<State, Action>>(
+  public static func buildPartialBlock<R0: Reducer2<State, Action>, R1: Reducer2<State, Action>>(
     accumulated: R0, next: R1
   ) -> _Sequence<R0, R1> {
     _Sequence(accumulated, next)
   }
 
-  public enum _Conditional<First: Reducer, Second: Reducer<First.State, First.Action>>: Reducer {
+  public enum _Conditional<First: Reducer2, Second: Reducer2<First.State, First.Action>>: Reducer2 {
     case first(First)
     case second(Second)
 
@@ -98,7 +98,7 @@ public enum ReducerBuilder<State, Action> {
     }
   }
 
-  public struct _Sequence<R0: Reducer, R1: Reducer<R0.State, R0.Action>>: Reducer {
+  public struct _Sequence<R0: Reducer2, R1: Reducer2<R0.State, R0.Action>>: Reducer2 {
     @usableFromInline
     let r0: R0
 
@@ -118,7 +118,7 @@ public enum ReducerBuilder<State, Action> {
     }
   }
 
-  public struct _SequenceMany<Element: Reducer>: Reducer {
+  public struct _SequenceMany<Element: Reducer2>: Reducer2 {
     @usableFromInline
     let reducers: [Element]
 

@@ -98,7 +98,7 @@
 ///
 /// For an alternative to using ``Scope`` with state case paths that enforces the order, check out
 /// the ``ifCaseLet(_:action:then:fileID:filePath:line:column:)-rdrb`` operator.
-public struct Scope<ParentState, ParentAction, Child: Reducer>: Reducer {
+public struct Scope<ParentState, ParentAction, Child: Reducer2>: Reducer2 {
   @usableFromInline
   enum StatePath {
     case casePath(

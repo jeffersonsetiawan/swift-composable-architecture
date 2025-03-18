@@ -30,8 +30,8 @@ extension ReducerMacro: ExtensionMacro {
     }
     let proto =
       declaration.isEnum
-      ? "ComposableArchitecture.CaseReducer, ComposableArchitecture.Reducer"
-      : "ComposableArchitecture.Reducer"
+      ? "ComposableArchitecture.CaseReducer, ComposableArchitecture.Reducer2"
+      : "ComposableArchitecture.Reducer2"
     let ext: DeclSyntax =
       """
       \(declaration.attributes.availability)extension \(type.trimmed): \(raw: proto) {}

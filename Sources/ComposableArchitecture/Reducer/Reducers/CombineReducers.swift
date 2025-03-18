@@ -15,7 +15,7 @@
 ///   ._printChanges()
 /// }
 /// ```
-public struct CombineReducers<State, Action, Reducers: Reducer>: Reducer
+public struct CombineReducers<State, Action, Reducers: Reducer2>: Reducer2
 where State == Reducers.State, Action == Reducers.Action {
   @usableFromInline
   let reducers: Reducers

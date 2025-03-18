@@ -2,7 +2,7 @@ import Combine
 import Dispatch
 @_spi(SharedChangeTracking) import Sharing
 
-extension Reducer {
+extension Reducer2 {
   /// Enhances a reducer with debug logging of received actions and state mutations for the given
   /// printer.
   ///
@@ -68,7 +68,7 @@ extension _ReducerPrinter {
   }
 }
 
-public struct _PrintChangesReducer<Base: Reducer>: Reducer {
+public struct _PrintChangesReducer<Base: Reducer2>: Reducer2 {
   @usableFromInline
   let base: Base
 

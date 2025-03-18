@@ -1,4 +1,4 @@
-extension Reducer {
+extension Reducer2 {
   /// Embeds a child reducer in a parent domain that works on an optional property of parent state.
   ///
   /// For example, if a parent feature holds onto a piece of optional child state, then it can
@@ -56,7 +56,7 @@ extension Reducer {
   /// - Returns: A reducer that combines the child reducer with the parent reducer.
   @inlinable
   @warn_unqualified_access
-  public func ifLet<WrappedState, WrappedAction, Wrapped: Reducer<WrappedState, WrappedAction>>(
+  public func ifLet<WrappedState, WrappedAction, Wrapped: Reducer2<WrappedState, WrappedAction>>(
     _ toWrappedState: WritableKeyPath<State, WrappedState?>,
     action toWrappedAction: CaseKeyPath<Action, WrappedAction>,
     @ReducerBuilder<WrappedState, WrappedAction> then wrapped: () -> Wrapped,
@@ -64,7 +64,7 @@ extension Reducer {
     filePath: StaticString = #filePath,
     line: UInt = #line,
     column: UInt = #column
-  ) -> some Reducer<State, Action> {
+  ) -> some Reducer2<State, Action> {
     _IfLetReducer(
       parent: self,
       child: wrapped(),
@@ -88,7 +88,7 @@ extension Reducer {
     filePath: StaticString = #filePath,
     line: UInt = #line,
     column: UInt = #column
-  ) -> some Reducer<State, Action> {
+  ) -> some Reducer2<State, Action> {
     _IfLetReducer(
       parent: self,
       child: EmptyReducer(),
@@ -127,7 +127,7 @@ extension Reducer {
   )
   @inlinable
   @warn_unqualified_access
-  public func ifLet<WrappedState, WrappedAction, Wrapped: Reducer<WrappedState, WrappedAction>>(
+  public func ifLet<WrappedState, WrappedAction, Wrapped: Reducer2<WrappedState, WrappedAction>>(
     _ toWrappedState: WritableKeyPath<State, WrappedState?>,
     action toWrappedAction: AnyCasePath<Action, WrappedAction>,
     @ReducerBuilder<WrappedState, WrappedAction> then wrapped: () -> Wrapped,
@@ -135,7 +135,7 @@ extension Reducer {
     filePath: StaticString = #filePath,
     line: UInt = #line,
     column: UInt = #column
-  ) -> some Reducer<State, Action> {
+  ) -> some Reducer2<State, Action> {
     _IfLetReducer(
       parent: self,
       child: wrapped(),
@@ -195,7 +195,7 @@ extension Reducer {
   }
 }
 
-public struct _IfLetReducer<Parent: Reducer, Child: Reducer>: Reducer {
+public struct _IfLetReducer<Parent: Reducer2, Child: Reducer2>: Reducer2 {
   @usableFromInline
   let parent: Parent
 

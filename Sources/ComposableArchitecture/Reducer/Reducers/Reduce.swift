@@ -2,7 +2,7 @@
 ///
 /// ``Reduce`` is useful for injecting logic into a reducer tree without the overhead of introducing
 /// a new type that conforms to ``Reducer``.
-public struct Reduce<State, Action>: Reducer {
+public struct Reduce<State, Action>: Reducer2 {
   @usableFromInline
   let reduce: (inout State, Action) -> Effect2<Action>
 
@@ -25,7 +25,7 @@ public struct Reduce<State, Action>: Reducer {
   ///
   /// - Parameter reducer: A reducer that is called when ``reduce(into:action:)`` is invoked.
   @inlinable
-  public init(_ reducer: some Reducer<State, Action>) {
+  public init(_ reducer: some Reducer2<State, Action>) {
     self.init(internal: reducer.reduce)
   }
 

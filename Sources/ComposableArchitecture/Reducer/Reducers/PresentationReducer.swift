@@ -340,7 +340,7 @@ extension PresentationAction: Sendable where Action: Sendable {}
 extension PresentationAction: Decodable where Action: Decodable {}
 extension PresentationAction: Encodable where Action: Encodable {}
 
-extension Reducer {
+extension Reducer2 {
   /// Embeds a child reducer in a parent domain that works on an optional property of parent state.
   ///
   /// This version of `ifLet` requires the usage of the ``Presents()`` macro and
@@ -408,7 +408,7 @@ extension Reducer {
   @warn_unqualified_access
   @inlinable
   public func ifLet<
-    DestinationState, DestinationAction, Destination: Reducer<DestinationState, DestinationAction>
+    DestinationState, DestinationAction, Destination: Reducer2<DestinationState, DestinationAction>
   >(
     _ toPresentationState: WritableKeyPath<State, PresentationState<DestinationState>>,
     action toPresentationAction: CaseKeyPath<Action, PresentationAction<DestinationAction>>,
@@ -417,7 +417,7 @@ extension Reducer {
     filePath: StaticString = #filePath,
     line: UInt = #line,
     column: UInt = #column
-  ) -> some Reducer<State, Action> {
+  ) -> some Reducer2<State, Action> {
     _PresentationReducer(
       base: self,
       toPresentationState: toPresentationState,
@@ -441,7 +441,7 @@ extension Reducer {
     filePath: StaticString = #filePath,
     line: UInt = #line,
     column: UInt = #column
-  ) -> some Reducer<State, Action> {
+  ) -> some Reducer2<State, Action> {
     self.ifLet(
       toPresentationState,
       action: toPresentationAction,
@@ -480,7 +480,7 @@ extension Reducer {
   @warn_unqualified_access
   @inlinable
   public func ifLet<
-    DestinationState, DestinationAction, Destination: Reducer<DestinationState, DestinationAction>
+    DestinationState, DestinationAction, Destination: Reducer2<DestinationState, DestinationAction>
   >(
     _ toPresentationState: WritableKeyPath<State, PresentationState<DestinationState>>,
     action toPresentationAction: AnyCasePath<Action, PresentationAction<DestinationAction>>,
@@ -489,7 +489,7 @@ extension Reducer {
     filePath: StaticString = #filePath,
     line: UInt = #line,
     column: UInt = #column
-  ) -> some Reducer<State, Action> {
+  ) -> some Reducer2<State, Action> {
     _PresentationReducer(
       base: self,
       toPresentationState: toPresentationState,
@@ -535,7 +535,7 @@ extension Reducer {
     filePath: StaticString = #filePath,
     line: UInt = #line,
     column: UInt = #column
-  ) -> some Reducer<State, Action> {
+  ) -> some Reducer2<State, Action> {
     self.ifLet(
       toPresentationState,
       action: toPresentationAction,
@@ -548,7 +548,7 @@ extension Reducer {
   }
 }
 
-public struct _PresentationReducer<Base: Reducer, Destination: Reducer>: Reducer {
+public struct _PresentationReducer<Base: Reducer2, Destination: Reducer2>: Reducer2 {
   @usableFromInline let base: Base
   @usableFromInline let toPresentationState:
     WritableKeyPath<Base.State, PresentationState<Destination.State>>

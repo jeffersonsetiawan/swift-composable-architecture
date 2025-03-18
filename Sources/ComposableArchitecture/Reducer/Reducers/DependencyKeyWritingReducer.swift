@@ -1,4 +1,4 @@
-extension Reducer {
+extension Reducer2 {
   /// Sets the dependency value of the specified key path to the given value.
   ///
   /// This overrides the dependency specified by `keyPath` for the execution of the receiving
@@ -148,7 +148,7 @@ extension Reducer {
   }
 }
 
-public struct _DependencyKeyWritingReducer<Base: Reducer>: Reducer {
+public struct _DependencyKeyWritingReducer<Base: Reducer2>: Reducer2 {
   @usableFromInline
   let base: Base
 
