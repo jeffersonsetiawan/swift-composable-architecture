@@ -25,14 +25,14 @@ final class iOS16_IdentifiedListTests: BaseIntegrationTests {
       IdentifiedStoreOf<BasicsView.Feature>.deinit
       IdentifiedStoreOf<BasicsView.Feature>.init
       IdentifiedStoreOf<BasicsView.Feature>.init
-      Store<UUID, Action>
-      Store<UUID, BasicsView.Feature.Action>.deinit
-      Store<UUID, BasicsView.Feature.Action>.deinit
-      Store<UUID, BasicsView.Feature.Action>.init
-      Store<UUID, BasicsView.Feature.Action>.init
-      Store<UUID, BasicsView.Feature.Action>.init
-      Store<UUID, BasicsView.Feature.Action>.init
-      Store<UUID, BasicsView.Feature.Action>.init
+      Store2<UUID, Action>
+      Store2<UUID, BasicsView.Feature.Action>.deinit
+      Store2<UUID, BasicsView.Feature.Action>.deinit
+      Store2<UUID, BasicsView.Feature.Action>.init
+      Store2<UUID, BasicsView.Feature.Action>.init
+      Store2<UUID, BasicsView.Feature.Action>.init
+      Store2<UUID, BasicsView.Feature.Action>.init
+      Store2<UUID, BasicsView.Feature.Action>.init
       StoreOf<BasicsView.Feature>.init
       StoreOf<BasicsView.Feature>.init
       StoreOf<BasicsView.Feature>.init
@@ -74,16 +74,16 @@ final class iOS16_IdentifiedListTests: BaseIntegrationTests {
       IdentifiedStoreOf<BasicsView.Feature>.deinit
       IdentifiedStoreOf<BasicsView.Feature>.init
       IdentifiedStoreOf<BasicsView.Feature>.init
-      Store<UUID, Action>
-      Store<UUID, Action>
-      Store<UUID, BasicsView.Feature.Action>.deinit
-      Store<UUID, BasicsView.Feature.Action>.deinit
-      Store<UUID, BasicsView.Feature.Action>.deinit
-      Store<UUID, BasicsView.Feature.Action>.deinit
-      Store<UUID, BasicsView.Feature.Action>.init
-      Store<UUID, BasicsView.Feature.Action>.init
-      Store<UUID, BasicsView.Feature.Action>.init
-      Store<UUID, BasicsView.Feature.Action>.init
+      Store2<UUID, Action>
+      Store2<UUID, Action>
+      Store2<UUID, BasicsView.Feature.Action>.deinit
+      Store2<UUID, BasicsView.Feature.Action>.deinit
+      Store2<UUID, BasicsView.Feature.Action>.deinit
+      Store2<UUID, BasicsView.Feature.Action>.deinit
+      Store2<UUID, BasicsView.Feature.Action>.init
+      Store2<UUID, BasicsView.Feature.Action>.init
+      Store2<UUID, BasicsView.Feature.Action>.init
+      Store2<UUID, BasicsView.Feature.Action>.init
       ViewIdentifiedStoreOf<BasicsView.Feature>.deinit
       ViewIdentifiedStoreOf<BasicsView.Feature>.deinit
       ViewIdentifiedStoreOf<BasicsView.Feature>.init

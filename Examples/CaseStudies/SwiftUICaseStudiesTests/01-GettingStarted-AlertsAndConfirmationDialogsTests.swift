@@ -3,6 +3,7 @@ import Testing
 
 @testable import SwiftUICaseStudies
 
+typealias TestStore = TestStore2
 @MainActor
 struct AlertsAndConfirmationDialogsTests {
   @Test

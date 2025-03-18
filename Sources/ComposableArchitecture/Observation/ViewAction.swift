@@ -17,7 +17,7 @@ public protocol ViewAction<ViewAction> {
 public protocol ViewActionSending<StoreState, StoreAction> {
   associatedtype StoreState
   associatedtype StoreAction: ViewAction
-  var store: Store<StoreState, StoreAction> { get }
+  var store: Store2<StoreState, StoreAction> { get }
 }
 
 extension ViewActionSending {

@@ -159,8 +159,8 @@ final class iOS16_17_OldPresentsNewTests: BaseIntegrationTests {
     self.assertLogs {
       """
       PresentationStoreOf<ObservableBasicsView.Feature>.deinit
-      Store<OldPresentsNewTestCase.ViewState, OldPresentsNewTestCase.Feature.Action>.deinit
-      Store<OldPresentsNewTestCase.ViewState, OldPresentsNewTestCase.Feature.Action>.deinit
+      Store2<OldPresentsNewTestCase.ViewState, OldPresentsNewTestCase.Feature.Action>.deinit
+      Store2<OldPresentsNewTestCase.ViewState, OldPresentsNewTestCase.Feature.Action>.deinit
       ViewPresentationStoreOf<ObservableBasicsView.Feature>.deinit
       ViewStore<OldPresentsNewTestCase.ViewState, OldPresentsNewTestCase.Feature.Action>.deinit
       """

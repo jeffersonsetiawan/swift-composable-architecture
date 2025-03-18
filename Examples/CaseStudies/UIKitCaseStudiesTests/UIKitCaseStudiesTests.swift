@@ -3,6 +3,7 @@ import Testing
 
 @testable import UIKitCaseStudies
 
+typealias TestStore = TestStore2
 @MainActor
 @Test
 func countDown() async {

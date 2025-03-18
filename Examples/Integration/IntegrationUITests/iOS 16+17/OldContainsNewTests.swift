@@ -31,10 +31,10 @@ final class iOS16_17_OldContainsNewTests: BaseIntegrationTests {
       """
       ObservableBasicsView.body
       OldContainsNewTestCase.body
-      Store<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.deinit
-      Store<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.deinit
-      Store<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.init
-      Store<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.init
+      Store2<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.deinit
+      Store2<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.deinit
+      Store2<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.init
+      Store2<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.init
       ViewStore<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.deinit
       ViewStore<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.deinit
       ViewStore<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.init
@@ -69,10 +69,10 @@ final class iOS16_17_OldContainsNewTests: BaseIntegrationTests {
       """
       ObservableBasicsView.body
       OldContainsNewTestCase.body
-      Store<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.deinit
-      Store<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.deinit
-      Store<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.init
-      Store<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.init
+      Store2<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.deinit
+      Store2<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.deinit
+      Store2<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.init
+      Store2<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.init
       ViewStore<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.deinit
       ViewStore<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.deinit
       ViewStore<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.init
@@ -90,8 +90,8 @@ final class iOS16_17_OldContainsNewTests: BaseIntegrationTests {
     self.app.buttons["iOS 16 + 17"].tap()
     self.assertLogs {
       """
-      Store<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.deinit
-      Store<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.deinit
+      Store2<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.deinit
+      Store2<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.deinit
       ViewStore<OldContainsNewTestCase.ViewState, OldContainsNewTestCase.Feature.Action>.deinit
       """
     }

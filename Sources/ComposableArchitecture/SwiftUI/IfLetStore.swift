@@ -39,7 +39,7 @@ import SwiftUI
 )
 public struct IfLetStore<State, Action, Content: View>: View {
   private let content: (ViewStore<State?, Action>) -> Content
-  private let store: Store<State?, Action>
+  private let store: Store2<State?, Action>
 
   /// Initializes an ``IfLetStore`` view that computes content depending on if a store of optional
   /// state is `nil` or non-`nil`.
@@ -55,8 +55,8 @@ public struct IfLetStore<State, Action, Content: View>: View {
     @preconcurrency@MainActor
   #endif
   public init<IfContent, ElseContent>(
-    _ store: Store<State?, Action>,
-    @ViewBuilder then ifContent: @escaping (_ store: Store<State, Action>) -> IfContent,
+    _ store: Store2<State?, Action>,
+    @ViewBuilder then ifContent: @escaping (_ store: Store2<State, Action>) -> IfContent,
     @ViewBuilder else elseContent: () -> ElseContent
   ) where Content == _ConditionalContent<IfContent, ElseContent> {
     let store = store.scope(
@@ -101,8 +101,8 @@ public struct IfLetStore<State, Action, Content: View>: View {
     @preconcurrency@MainActor
   #endif
   public init<IfContent>(
-    _ store: Store<State?, Action>,
-    @ViewBuilder then ifContent: @escaping (_ store: Store<State, Action>) -> IfContent
+    _ store: Store2<State?, Action>,
+    @ViewBuilder then ifContent: @escaping (_ store: Store2<State, Action>) -> IfContent
   ) where Content == IfContent? {
     let store = store.scope(
       id: store.id(state: \.self, action: \.self),
@@ -164,8 +164,8 @@ public struct IfLetStore<State, Action, Content: View>: View {
     @preconcurrency@MainActor
   #endif
   public init<IfContent, ElseContent>(
-    _ store: Store<PresentationState<State>, PresentationAction<Action>>,
-    @ViewBuilder then ifContent: @escaping (_ store: Store<State, Action>) -> IfContent,
+    _ store: Store2<PresentationState<State>, PresentationAction<Action>>,
+    @ViewBuilder then ifContent: @escaping (_ store: Store2<State, Action>) -> IfContent,
     @ViewBuilder else elseContent: @escaping () -> ElseContent
   ) where Content == _ConditionalContent<IfContent, ElseContent> {
     self.init(
@@ -208,8 +208,8 @@ public struct IfLetStore<State, Action, Content: View>: View {
     @preconcurrency@MainActor
   #endif
   public init<IfContent>(
-    _ store: Store<PresentationState<State>, PresentationAction<Action>>,
-    @ViewBuilder then ifContent: @escaping (_ store: Store<State, Action>) -> IfContent
+    _ store: Store2<PresentationState<State>, PresentationAction<Action>>,
+    @ViewBuilder then ifContent: @escaping (_ store: Store2<State, Action>) -> IfContent
   ) where Content == IfContent? {
     self.init(
       store.scope(state: \.wrappedValue, action: \.presented),
@@ -242,10 +242,10 @@ public struct IfLetStore<State, Action, Content: View>: View {
     @preconcurrency@MainActor
   #endif
   public init<DestinationState, DestinationAction, IfContent, ElseContent>(
-    _ store: Store<PresentationState<DestinationState>, PresentationAction<DestinationAction>>,
+    _ store: Store2<PresentationState<DestinationState>, PresentationAction<DestinationAction>>,
     state toState: @escaping (_ destinationState: DestinationState) -> State?,
     action fromAction: @escaping (_ action: Action) -> DestinationAction,
-    @ViewBuilder then ifContent: @escaping (_ store: Store<State, Action>) -> IfContent,
+    @ViewBuilder then ifContent: @escaping (_ store: Store2<State, Action>) -> IfContent,
     @ViewBuilder else elseContent: @escaping () -> ElseContent
   ) where Content == _ConditionalContent<IfContent, ElseContent> {
     self.init(
@@ -281,10 +281,10 @@ public struct IfLetStore<State, Action, Content: View>: View {
     @preconcurrency@MainActor
   #endif
   public init<DestinationState, DestinationAction, IfContent>(
-    _ store: Store<PresentationState<DestinationState>, PresentationAction<DestinationAction>>,
+    _ store: Store2<PresentationState<DestinationState>, PresentationAction<DestinationAction>>,
     state toState: @escaping (_ destinationState: DestinationState) -> State?,
     action fromAction: @escaping (_ action: Action) -> DestinationAction,
-    @ViewBuilder then ifContent: @escaping (_ store: Store<State, Action>) -> IfContent
+    @ViewBuilder then ifContent: @escaping (_ store: Store2<State, Action>) -> IfContent
   ) where Content == IfContent? {
     self.init(
       store.scope(

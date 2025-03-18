@@ -1,6 +1,6 @@
 @preconcurrency import Combine
 
-extension Effect where Action: Sendable {
+extension Effect2 where Action: Sendable {
   @_spi(Internals) public var actions: AsyncStream<Action> {
     switch self.operation {
     case .none:

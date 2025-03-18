@@ -55,15 +55,15 @@ final class StoreLifetimeTests: BaseTCATestCase {
     func testStoreDeinit() {
       Logger.shared.isEnabled = true
       do {
-        let store = Store<Void, Void>(initialState: ()) {}
+        let store = Store2<Void, Void>(initialState: ()) {}
         _ = store
       }
 
       XCTAssertEqual(
         Logger.shared.logs,
         [
-          "Store<(), ()>.init",
-          "Store<(), ()>.deinit",
+          "Store2<(), ()>.init",
+          "Store2<(), ()>.deinit",
         ]
       )
     }
@@ -73,7 +73,7 @@ final class StoreLifetimeTests: BaseTCATestCase {
       Logger.shared.isEnabled = true
       let effectFinished = self.expectation(description: "Effect finished")
       do {
-        let store = Store<Void, Void>(initialState: ()) {
+        let store = Store2<Void, Void>(initialState: ()) {
           Reduce { state, _ in
             .run { _ in
               try? await Task.never()
@@ -88,8 +88,8 @@ final class StoreLifetimeTests: BaseTCATestCase {
       XCTAssertEqual(
         Logger.shared.logs,
         [
-          "Store<(), ()>.init",
-          "Store<(), ()>.deinit",
+          "Store2<(), ()>.init",
+          "Store2<(), ()>.deinit",
         ]
       )
       await self.fulfillment(of: [effectFinished], timeout: 0.5)
@@ -100,7 +100,7 @@ final class StoreLifetimeTests: BaseTCATestCase {
       Logger.shared.isEnabled = true
       let effectFinished = self.expectation(description: "Effect finished")
       do {
-        let store = Store<Void, Void>(initialState: ()) {
+        let store = Store2<Void, Void>(initialState: ()) {
           Reduce { state, _ in
             .publisher {
               Empty(completeImmediately: false)
@@ -117,8 +117,8 @@ final class StoreLifetimeTests: BaseTCATestCase {
       XCTAssertEqual(
         Logger.shared.logs,
         [
-          "Store<(), ()>.init",
-          "Store<(), ()>.deinit",
+          "Store2<(), ()>.init",
+          "Store2<(), ()>.deinit",
         ]
       )
       await self.fulfillment(of: [effectFinished], timeout: 0.5)

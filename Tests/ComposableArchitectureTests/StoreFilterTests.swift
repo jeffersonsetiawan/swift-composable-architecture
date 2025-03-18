@@ -7,7 +7,7 @@ final class StoreInvalidationTests: BaseTCATestCase {
   func testInvalidation() {
     var cancellables: Set<AnyCancellable> = []
 
-    let store = Store<Int?, Void>(initialState: nil) {}
+    let store = Store2<Int?, Void>(initialState: nil) {}
       .scope(
         id: nil,
         state: ToState { $0 },

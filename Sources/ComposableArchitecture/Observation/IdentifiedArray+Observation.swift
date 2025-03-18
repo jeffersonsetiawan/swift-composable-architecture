@@ -1,7 +1,7 @@
 import OrderedCollections
 import SwiftUI
 
-extension Store where State: ObservableState {
+extension Store2 where State: ObservableState {
   /// Scopes the store of an identified collection to a collection of stores.
   ///
   /// This operator is most often used with SwiftUI's `ForEach` view. For example, suppose you
@@ -75,7 +75,7 @@ extension Store where State: ObservableState {
     filePath: StaticString = #filePath,
     line: UInt = #line,
     column: UInt = #column
-  ) -> some RandomAccessCollection<Store<ElementState, ElementAction>> {
+  ) -> some RandomAccessCollection<Store2<ElementState, ElementAction>> {
     if !self.canCacheChildren {
       reportIssue(
         uncachedStoreWarning(self),
@@ -90,7 +90,7 @@ extension Store where State: ObservableState {
 }
 
 public struct _StoreCollection<ID: Hashable & Sendable, State, Action>: RandomAccessCollection {
-  private let store: Store<IdentifiedArray<ID, State>, IdentifiedAction<ID, Action>>
+  private let store: Store2<IdentifiedArray<ID, State>, IdentifiedAction<ID, Action>>
   private let data: IdentifiedArray<ID, State>
 
   #if swift(<5.10)
@@ -98,7 +98,7 @@ public struct _StoreCollection<ID: Hashable & Sendable, State, Action>: RandomAc
   #else
     @preconcurrency@MainActor
   #endif
-  fileprivate init(_ store: Store<IdentifiedArray<ID, State>, IdentifiedAction<ID, Action>>) {
+  fileprivate init(_ store: Store2<IdentifiedArray<ID, State>, IdentifiedAction<ID, Action>>) {
     self.store = store
     store._$observationRegistrar.access(store, keyPath: \.currentState)
     self.data = store.withState { $0 }
@@ -106,7 +106,7 @@ public struct _StoreCollection<ID: Hashable & Sendable, State, Action>: RandomAc
 
   public var startIndex: Int { self.data.startIndex }
   public var endIndex: Int { self.data.endIndex }
-  public subscript(position: Int) -> Store<State, Action> {
+  public subscript(position: Int) -> Store2<State, Action> {
     precondition(
       Thread.isMainThread,
       #"""
@@ -122,7 +122,7 @@ public struct _StoreCollection<ID: Hashable & Sendable, State, Action>: RandomAc
       let `self` = uncheckedSelf.wrappedValue
       guard self.data.indices.contains(position)
       else {
-        return Store()
+        return Store2()
       }
       let id = self.data.ids[position]
       var element = self.data[position]

@@ -431,7 +431,7 @@ import IssueReporting
 #else
   @preconcurrency@MainActor
 #endif
-public final class TestStore<State: Equatable, Action> {
+public final class TestStore2<State: Equatable, Action> {
   /// The current dependencies of the test store.
   ///
   /// The dependencies define the execution context that your feature runs in. They can be modified
@@ -504,7 +504,7 @@ public final class TestStore<State: Equatable, Action> {
   private let column: UInt
   let reducer: TestReducer<State, Action>
   private let sharedChangeTracker: SharedChangeTracker
-  private let store: Store<State, TestReducer<State, Action>.TestAction>
+  private let store: Store2<State, TestReducer<State, Action>.TestAction>
 
   /// Returns `true` if the store's feature has been dismissed.
   public fileprivate(set) var isDismissed = false
@@ -549,7 +549,7 @@ public final class TestStore<State: Equatable, Action> {
     self.line = line
     self.column = column
     self.reducer = reducer
-    self.store = Store(initialState: reducer.state) { reducer }
+    self.store = Store2(initialState: reducer.state) { reducer }
     self.timeout = 1 * NSEC_PER_SEC
     self.sharedChangeTracker = sharedChangeTracker
     self.useMainSerialExecutor = true
@@ -849,9 +849,9 @@ public final class TestStore<State: Equatable, Action> {
 /// ```swift
 /// let testStore: TestStoreOf<Feature>
 /// ```
-public typealias TestStoreOf<R: Reducer> = TestStore<R.State, R.Action> where R.State: Equatable
+public typealias TestStoreOf<R: Reducer> = TestStore2<R.State, R.Action> where R.State: Equatable
 
-extension TestStore {
+extension TestStore2 {
   /// Sends an action to the store and asserts when state changes.
   ///
   /// To assert on how state changes you can provide a trailing closure, and that closure is handed
@@ -1267,7 +1267,7 @@ extension TestStore {
   }
 }
 
-extension TestStore where Action: Equatable {
+extension TestStore2 where Action: Equatable {
   private func _receive(
     _ expectedAction: Action,
     assert updateStateToExpectedResult: ((inout State) throws -> Void)? = nil,
@@ -1441,7 +1441,7 @@ extension TestStore where Action: Equatable {
   }
 }
 
-extension TestStore {
+extension TestStore2 {
   private func _receive(
     _ isMatching: (Action) -> Bool,
     assert updateStateToExpectedResult: ((inout State) throws -> Void)? = nil,
@@ -2241,7 +2241,7 @@ extension TestStore {
   }
 }
 
-extension TestStore {
+extension TestStore2 {
   /// Sends an action to the store and asserts when state changes.
   ///
   /// This method is similar to ``send(_:assert:fileID:file:line:column:)-8f2pl``, except it allows
@@ -2342,7 +2342,7 @@ extension TestStore {
   }
 }
 
-extension TestStore {
+extension TestStore2 {
   /// Clears the queue of received actions from effects.
   ///
   /// Can be handy if you are writing an exhaustive test for a particular part of your feature, but
@@ -2546,7 +2546,7 @@ extension TestStore {
   }
 }
 
-extension TestStore {
+extension TestStore2 {
   /// Returns a binding view store for this store.
   ///
   /// Useful for testing view state of a store.
@@ -2579,7 +2579,7 @@ extension TestStore {
     action toViewAction: CaseKeyPath<Action, ViewAction>
   ) -> BindingViewStore<State> where State == ViewAction.State, Action: CasePathable {
     BindingViewStore(
-      store: Store(initialState: self.state) {
+      store: Store2(initialState: self.state) {
         BindingReducer(action: toViewAction)
       }
       .scope(state: \.self, action: toViewAction)
@@ -2614,7 +2614,7 @@ extension TestStore {
     action toViewAction: AnyCasePath<Action, ViewAction>
   ) -> BindingViewStore<State> where State == ViewAction.State {
     BindingViewStore(
-      store: Store(initialState: self.state) {
+      store: Store2(initialState: self.state) {
         BindingReducer(action: toViewAction.extract(from:))
       }
       .scope(
@@ -2627,7 +2627,7 @@ extension TestStore {
   }
 }
 
-extension TestStore where Action: BindableAction, State == Action.State {
+extension TestStore2 where Action: BindableAction, State == Action.State {
   /// Returns a binding view store for this store.
   ///
   /// Useful for testing view state of a store.
@@ -2812,7 +2812,7 @@ class TestReducer<State: Equatable, Action>: Reducer {
   var inFlightEffects: Set<LongLivingEffect> = []
   var receivedActions: [(action: Action, state: State)] = []
   var state: State
-  weak var store: TestStore<State, Action>?
+  weak var store: TestStore2<State, Action>?
 
   init(
     _ base: Reduce<State, Action>,
@@ -2824,7 +2824,7 @@ class TestReducer<State: Equatable, Action>: Reducer {
     self.state = initialState
   }
 
-  func reduce(into state: inout State, action: TestAction) -> Effect<TestAction> {
+  func reduce(into state: inout State, action: TestAction) -> Effect2<TestAction> {
     var dependencies = self.dependencies
     let dismiss = dependencies.dismiss.dismiss
     dependencies.dismiss = DismissEffect { [weak store] in
@@ -2836,7 +2836,7 @@ class TestReducer<State: Equatable, Action>: Reducer {
     }
     let reducer = self.base.dependency(\.self, dependencies)
 
-    let effects: Effect<Action>
+    let effects: Effect2<Action>
     switch action.origin {
     case let .send(action):
       effects = reducer.reduce(into: &state, action: action)
@@ -2965,7 +2965,7 @@ public enum Exhaustivity: Equatable, Sendable {
   public static let off = Self.off(showSkippedAssertions: false)
 }
 
-extension TestStore {
+extension TestStore2 {
   @available(
     *,
     unavailable,

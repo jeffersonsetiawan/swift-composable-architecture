@@ -47,9 +47,9 @@ public struct NavigationStackStore<State, Action, Root: View, Destination: View>
   ///   - line: The line.
   ///   - column: The column.
   public init(
-    _ store: Store<StackState<State>, StackAction<State, Action>>,
+    _ store: Store2<StackState<State>, StackAction<State, Action>>,
     @ViewBuilder root: () -> Root,
-    @ViewBuilder destination: @escaping (_ store: Store<State, Action>) -> Destination,
+    @ViewBuilder destination: @escaping (_ store: Store2<State, Action>) -> Destination,
     fileID: StaticString = #fileID,
     filePath: StaticString = #filePath,
     line: UInt = #line,
@@ -104,7 +104,7 @@ public struct NavigationStackStore<State, Action, Root: View, Destination: View>
   ///   - column: The column.
   @_disfavoredOverload
   public init<D: View>(
-    _ store: Store<StackState<State>, StackAction<State, Action>>,
+    _ store: Store2<StackState<State>, StackAction<State, Action>>,
     @ViewBuilder root: () -> Root,
     @ViewBuilder destination: @escaping (_ initialState: State) -> D,
     fileID: StaticString = #fileID,

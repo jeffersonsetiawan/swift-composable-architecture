@@ -137,7 +137,7 @@ import SwiftUI
 #else
   @preconcurrency@MainActor
 #endif
-public final class Store<State, Action> {
+public final class Store2<State, Action> {
   var canCacheChildren = true
   private var children: [ScopeID<State, Action>: AnyObject] = [:]
   var _isInvalidated: @MainActor @Sendable () -> Bool = { false }
@@ -299,7 +299,7 @@ public final class Store<State, Action> {
   public func scope<ChildState, ChildAction>(
     state: KeyPath<State, ChildState>,
     action: CaseKeyPath<Action, ChildAction>
-  ) -> Store<ChildState, ChildAction> {
+  ) -> Store2<ChildState, ChildAction> {
     self.scope(
       id: self.id(state: state, action: action),
       state: ToState(state),
@@ -316,7 +316,7 @@ public final class Store<State, Action> {
   public func scope<ChildState, ChildAction>(
     state toChildState: @escaping (_ state: State) -> ChildState,
     action fromChildAction: @escaping (_ childAction: ChildAction) -> Action
-  ) -> Store<ChildState, ChildAction> {
+  ) -> Store2<ChildState, ChildAction> {
     self.scope(
       id: nil,
       state: ToState(toChildState),
@@ -336,14 +336,14 @@ public final class Store<State, Action> {
     state: ToState<State, ChildState>,
     action fromChildAction: @escaping (ChildAction) -> Action,
     isInvalid: ((State) -> Bool)?
-  ) -> Store<ChildState, ChildAction> {
+  ) -> Store2<ChildState, ChildAction> {
     if self.canCacheChildren,
       let id = id,
-      let childStore = self.children[id] as? Store<ChildState, ChildAction>
+      let childStore = self.children[id] as? Store2<ChildState, ChildAction>
     {
       return childStore
     }
-    let childStore = Store<ChildState, ChildAction>(
+    let childStore = Store2<ChildState, ChildAction>(
       rootStore: self.rootStore,
       toState: self.toState.appending(state.base),
       fromAction: { [fromAction] in fromAction(fromChildAction($0)) }
@@ -450,7 +450,7 @@ public final class Store<State, Action> {
   let action: PartialCaseKeyPath<Action>
 }
 
-extension Store: CustomDebugStringConvertible {
+extension Store2: CustomDebugStringConvertible {
   public nonisolated var debugDescription: String {
     storeTypeName(of: self)
   }
@@ -461,7 +461,7 @@ extension Store: CustomDebugStringConvertible {
 /// Instead of specifying two generics:
 ///
 /// ```swift
-/// let store: Store<Feature.State, Feature.Action>
+/// let store: Store2<Feature.State, Feature.Action>
 /// ```
 ///
 /// You can specify a single generic:
@@ -469,7 +469,7 @@ extension Store: CustomDebugStringConvertible {
 /// ```swift
 /// let store: StoreOf<Feature>
 /// ```
-public typealias StoreOf<R: Reducer> = Store<R.State, R.Action>
+public typealias StoreOf<R: Reducer> = Store2<R.State, R.Action>
 
 /// A publisher of store state.
 @dynamicMemberLookup
@@ -550,7 +550,7 @@ private protocol _OptionalProtocol {}
 extension Optional: _OptionalProtocol {}
 extension PresentationState: _OptionalProtocol {}
 
-func storeTypeName<State, Action>(of store: Store<State, Action>) -> String {
+func storeTypeName<State, Action>(of store: Store2<State, Action>) -> String {
   let stateType = typeName(State.self, genericsAbbreviated: false)
   let actionType = typeName(Action.self, genericsAbbreviated: false)
   if stateType.hasSuffix(".State"),
@@ -580,7 +580,7 @@ func storeTypeName<State, Action>(of store: Store<State, Action>) -> String {
   {
     return "StackStoreOf<\(stateType.dropFirst(11).dropLast(7))>"
   } else {
-    return "Store<\(stateType), \(actionType)>"
+    return "Store2<\(stateType), \(actionType)>"
   }
 }
 
@@ -687,5 +687,5 @@ let _isStorePerceptionCheckingEnabled: Bool = {
   //     in Swift, or very opaque and undocumented behavior of Swift.
   //     See https://github.com/tuist/tuist/issues/6320#issuecomment-2148554117
   @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
-  extension Store: Observable {}
+  extension Store2: Observable {}
 #endif

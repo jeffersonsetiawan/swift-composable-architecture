@@ -1,6 +1,6 @@
 import Combine
 
-extension Effect {
+extension Effect2 {
   /// Creates an effect from a Combine publisher.
   ///
   /// - Parameter createPublisher: The closure to execute when the effect is performed.
@@ -14,9 +14,9 @@ public struct _EffectPublisher<Action>: Publisher {
   public typealias Output = Action
   public typealias Failure = Never
 
-  let effect: Effect<Action>
+  let effect: Effect2<Action>
 
-  public init(_ effect: Effect<Action>) {
+  public init(_ effect: Effect2<Action>) {
     self.effect = effect
   }
 

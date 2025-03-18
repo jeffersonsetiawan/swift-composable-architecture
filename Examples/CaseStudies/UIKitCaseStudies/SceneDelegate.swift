@@ -1,3 +1,4 @@
+import ComposableArchitecture
 import UIKit
 
 final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
@@ -24,3 +25,5 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     true
   }
 }
+
+typealias Store = Store2

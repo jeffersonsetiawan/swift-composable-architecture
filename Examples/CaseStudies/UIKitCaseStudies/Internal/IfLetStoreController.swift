@@ -3,8 +3,8 @@ import ComposableArchitecture
 import UIKit
 
 final class IfLetStoreController<State, Action>: UIViewController {
-  private let store: Store<State?, Action>
-  private let ifDestination: (Store<State, Action>) -> UIViewController
+  private let store: Store2<State?, Action>
+  private let ifDestination: (Store2<State, Action>) -> UIViewController
   private let elseDestination: () -> UIViewController
 
   private var cancellables: Set<AnyCancellable> = []
@@ -20,8 +20,8 @@ final class IfLetStoreController<State, Action>: UIViewController {
   }
 
   init(
-    _ store: Store<State?, Action>,
-    then ifDestination: @escaping (Store<State, Action>) -> UIViewController,
+    _ store: Store2<State?, Action>,
+    then ifDestination: @escaping (Store2<State, Action>) -> UIViewController,
     else elseDestination: @escaping () -> UIViewController
   ) {
     self.store = store

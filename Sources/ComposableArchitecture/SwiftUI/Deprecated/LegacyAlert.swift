@@ -21,7 +21,7 @@ extension View {
     @preconcurrency@MainActor
   #endif
   public func legacyAlert<ButtonAction>(
-    store: Store<PresentationState<AlertState<ButtonAction>>, PresentationAction<ButtonAction>>
+    store: Store2<PresentationState<AlertState<ButtonAction>>, PresentationAction<ButtonAction>>
   ) -> some View {
     self.legacyAlert(store: store, state: { $0 }, action: { $0 })
   }
@@ -65,7 +65,7 @@ extension View {
     @preconcurrency@MainActor
   #endif
   public func legacyAlert<State, Action, ButtonAction>(
-    store: Store<PresentationState<State>, PresentationAction<Action>>,
+    store: Store2<PresentationState<State>, PresentationAction<Action>>,
     state toDestinationState: @escaping (_ state: State) -> AlertState<ButtonAction>?,
     action fromDestinationAction: @escaping (_ alertAction: ButtonAction) -> Action
   ) -> some View {

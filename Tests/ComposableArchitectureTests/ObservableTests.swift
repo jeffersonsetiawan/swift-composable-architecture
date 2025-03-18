@@ -327,7 +327,7 @@ final class ObservableTests: BaseTCATestCase {
 
   @MainActor
   func testStore_ReplaceChild() async {
-    let store = Store<ParentState, Void>(initialState: ParentState()) {
+    let store = Store2<ParentState, Void>(initialState: ParentState()) {
       Reduce { state, _ in
         state.child.replace(with: ChildState(count: 42))
         return .none
@@ -348,7 +348,7 @@ final class ObservableTests: BaseTCATestCase {
 
   @MainActor
   func testStore_Replace() async {
-    let store = Store<ChildState, Void>(initialState: ChildState()) {
+    let store = Store2<ChildState, Void>(initialState: ChildState()) {
       Reduce { state, _ in
         state.replace(with: ChildState(count: 42))
         return .none
@@ -369,7 +369,7 @@ final class ObservableTests: BaseTCATestCase {
 
   @MainActor
   func testStore_ResetChild() async {
-    let store = Store<ParentState, Void>(initialState: ParentState(child: ChildState(count: 42))) {
+    let store = Store2<ParentState, Void>(initialState: ParentState(child: ChildState(count: 42))) {
       Reduce { state, _ in
         state.child.reset()
         return .none
@@ -390,7 +390,7 @@ final class ObservableTests: BaseTCATestCase {
 
   @MainActor
   func testStore_Reset() async {
-    let store = Store<ChildState, Void>(initialState: ChildState(count: 42)) {
+    let store = Store2<ChildState, Void>(initialState: ChildState(count: 42)) {
       Reduce { state, _ in
         state.reset()
         return .none
@@ -587,7 +587,7 @@ final class ObservableTests: BaseTCATestCase {
 
   @MainActor
   func testEnumStateWithInertCases() {
-    let store = Store<EnumState, Void>(initialState: EnumState.count(.one)) {
+    let store = Store2<EnumState, Void>(initialState: EnumState.count(.one)) {
       Reduce { state, _ in
         state = .count(.two)
         return .none
@@ -607,7 +607,7 @@ final class ObservableTests: BaseTCATestCase {
 
   @MainActor
   func testEnumStateWithInertCasesTricky() {
-    let store = Store<EnumState, Void>(initialState: EnumState.count(.one)) {
+    let store = Store2<EnumState, Void>(initialState: EnumState.count(.one)) {
       Reduce { state, _ in
         state = .anotherCount(.one)
         return .none
@@ -627,7 +627,7 @@ final class ObservableTests: BaseTCATestCase {
 
   @MainActor
   func testEnumStateWithIntCase() {
-    let store = Store<EnumState, Void>(initialState: EnumState.int(0)) {
+    let store = Store2<EnumState, Void>(initialState: EnumState.int(0)) {
       Reduce { state, _ in
         state = .int(1)
         return .none

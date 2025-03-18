@@ -51,7 +51,7 @@
         "Use '@ObservableState' and the 'scope' operation on bindable stores. See the following migration guide for more information: https://pointfreeco.github.io/swift-composable-architecture/main/documentation/composablearchitecture/migratingto1.13"
     )
     public convenience init<Action>(
-      store: Store<AlertState<Action>, PresentationAction<Action>>
+      store: Store2<AlertState<Action>, PresentationAction<Action>>
     ) {
       let state = store.currentState
       self.init(
@@ -97,7 +97,7 @@
         "Use '@ObservableState' and the 'scope' operation on bindable stores. See the following migration guide for more information: https://pointfreeco.github.io/swift-composable-architecture/main/documentation/composablearchitecture/migratingto1.13"
     )
     public convenience init<Action>(
-      store: Store<ConfirmationDialogState<Action>, PresentationAction<Action>>
+      store: Store2<ConfirmationDialogState<Action>, PresentationAction<Action>>
     ) {
       let state = store.currentState
       self.init(
@@ -144,7 +144,7 @@ public func InMemoryFileStorage() -> FileStorage { .inMemory }
 // NB: Deprecated with 1.0.0:
 
 @available(*, unavailable, renamed: "Effect")
-public typealias EffectTask = Effect
+public typealias EffectTask = Effect2
 
 @available(*, unavailable, renamed: "Reducer")
 public typealias ReducerProtocol = Reducer

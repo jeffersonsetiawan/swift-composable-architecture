@@ -384,7 +384,7 @@ extension ReducerMacro: MemberMacro {
           @preconcurrency @MainActor
           #endif
           \(access)static func scope(\
-          _ store: ComposableArchitecture.Store<Self.State, Self.Action>\
+          _ store: ComposableArchitecture.Store2<Self.State, Self.Action>\
           ) -> CaseScope {
           switch store.state {
           \(raw: storeScopes.joined(separator: "\n"))

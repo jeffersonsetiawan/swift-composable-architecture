@@ -350,7 +350,7 @@ public struct WithViewStore<ViewState, ViewAction, Content: View>: View {
   @ObservedObject private var viewStore: ViewStore<ViewState, ViewAction>
 
   init(
-    store: Store<ViewState, ViewAction>,
+    store: Store2<ViewState, ViewAction>,
     removeDuplicates isDuplicate: @escaping (ViewState, ViewState) -> Bool,
     content: @escaping (ViewStore<ViewState, ViewAction>) -> Content,
     file: StaticString = #fileID,
@@ -484,7 +484,7 @@ public struct WithViewStore<ViewState, ViewAction, Content: View>: View {
   ///   - file: The file.
   ///   - line: The line.
   public init<State, Action>(
-    _ store: Store<State, Action>,
+    _ store: Store2<State, Action>,
     observe toViewState: @escaping (_ state: State) -> ViewState,
     send fromViewAction: @escaping (_ viewAction: ViewAction) -> Action,
     removeDuplicates isDuplicate: @escaping (_ lhs: ViewState, _ rhs: ViewState) -> Bool,
@@ -581,7 +581,7 @@ public struct WithViewStore<ViewState, ViewAction, Content: View>: View {
   ///   - file: The file.
   ///   - line: The line.
   public init<State>(
-    _ store: Store<State, ViewAction>,
+    _ store: Store2<State, ViewAction>,
     observe toViewState: @escaping (_ state: State) -> ViewState,
     removeDuplicates isDuplicate: @escaping (_ lhs: ViewState, _ rhs: ViewState) -> Bool,
     @ViewBuilder content: @escaping (_ viewStore: ViewStore<ViewState, ViewAction>) -> Content,
@@ -678,7 +678,7 @@ extension WithViewStore where ViewState: Equatable, Content: View {
   ///   - file: The file.
   ///   - line: The line.
   public init<State, Action>(
-    _ store: Store<State, Action>,
+    _ store: Store2<State, Action>,
     observe toViewState: @escaping (_ state: State) -> ViewState,
     send fromViewAction: @escaping (_ viewAction: ViewAction) -> Action,
     @ViewBuilder content: @escaping (_ viewStore: ViewStore<ViewState, ViewAction>) -> Content,
@@ -772,7 +772,7 @@ extension WithViewStore where ViewState: Equatable, Content: View {
   ///   - file: The file.
   ///   - line: The line.
   public init<State>(
-    _ store: Store<State, ViewAction>,
+    _ store: Store2<State, ViewAction>,
     observe toViewState: @escaping (_ state: State) -> ViewState,
     @ViewBuilder content: @escaping (_ viewStore: ViewStore<ViewState, ViewAction>) -> Content,
     file: StaticString = #fileID,

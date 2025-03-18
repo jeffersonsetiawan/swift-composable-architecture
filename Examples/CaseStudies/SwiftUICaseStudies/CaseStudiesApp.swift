@@ -9,3 +9,5 @@ struct CaseStudiesApp: App {
     }
   }
 }
+
+typealias Store = Store2

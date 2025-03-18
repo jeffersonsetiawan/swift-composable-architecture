@@ -241,7 +241,7 @@
             enum CaseScope {
 
             }
-            static func scope(_ store: ComposableArchitecture.Store<Self.State, Self.Action>) -> CaseScope {
+            static func scope(_ store: ComposableArchitecture.Store2<Self.State, Self.Action>) -> CaseScope {
                 switch store.state {
 
                 }
@@ -320,7 +320,7 @@
             case tweet(ComposableArchitecture.StoreOf<Tweet>)
             case alert(AlertState<Alert>)
           }
-          static func scope(_ store: ComposableArchitecture.Store<Self.State, Self.Action>) -> CaseScope {
+          static func scope(_ store: ComposableArchitecture.Store2<Self.State, Self.Action>) -> CaseScope {
             switch store.state {
             case .activity:
               return .activity(store.scope(state: \.activity, action: \.activity)!)
@@ -384,7 +384,7 @@
             case timeline(ComposableArchitecture.StoreOf<Timeline>)
             case meeting(ComposableArchitecture.StoreOf<Meeting>)
           }
-          static func scope(_ store: ComposableArchitecture.Store<Self.State, Self.Action>) -> CaseScope {
+          static func scope(_ store: ComposableArchitecture.Store2<Self.State, Self.Action>) -> CaseScope {
             switch store.state {
             case .timeline:
               return .timeline(store.scope(state: \.timeline, action: \.timeline)!)
@@ -432,7 +432,7 @@
             enum CaseScope {
 
             }
-            static func scope(_ store: ComposableArchitecture.Store<Self.State, Self.Action>) -> CaseScope {
+            static func scope(_ store: ComposableArchitecture.Store2<Self.State, Self.Action>) -> CaseScope {
                 switch store.state {
 
                 }
@@ -482,7 +482,7 @@
 
             }
 
-            package static func scope(_ store: ComposableArchitecture.Store<Self.State, Self.Action>) -> CaseScope {
+            package static func scope(_ store: ComposableArchitecture.Store2<Self.State, Self.Action>) -> CaseScope {
                 switch store.state {
 
                 }
@@ -532,7 +532,7 @@
 
             }
 
-            public static func scope(_ store: ComposableArchitecture.Store<Self.State, Self.Action>) -> CaseScope {
+            public static func scope(_ store: ComposableArchitecture.Store2<Self.State, Self.Action>) -> CaseScope {
                 switch store.state {
 
                 }
@@ -580,7 +580,7 @@
           enum CaseScope {
             case alert(AlertState<Never>)
           }
-          static func scope(_ store: ComposableArchitecture.Store<Self.State, Self.Action>) -> CaseScope {
+          static func scope(_ store: ComposableArchitecture.Store2<Self.State, Self.Action>) -> CaseScope {
             switch store.state {
             case let .alert(v0):
               return .alert(v0)
@@ -638,7 +638,7 @@
             case activity(ComposableArchitecture.StoreOf<Activity>)
             case timeline(ComposableArchitecture.StoreOf<Timeline>)
           }
-          static func scope(_ store: ComposableArchitecture.Store<Self.State, Self.Action>) -> CaseScope {
+          static func scope(_ store: ComposableArchitecture.Store2<Self.State, Self.Action>) -> CaseScope {
             switch store.state {
             case .activity:
               return .activity(store.scope(state: \.activity, action: \.activity)!)
@@ -697,7 +697,7 @@
             case timeline(ComposableArchitecture.StoreOf<Timeline>)
             case meeting(Meeting)
           }
-          static func scope(_ store: ComposableArchitecture.Store<Self.State, Self.Action>) -> CaseScope {
+          static func scope(_ store: ComposableArchitecture.Store2<Self.State, Self.Action>) -> CaseScope {
             switch store.state {
             case .timeline:
               return .timeline(store.scope(state: \.timeline, action: \.timeline)!)
@@ -760,7 +760,7 @@
             case dialog(ConfirmationDialogState<Dialog>)
             case meeting(Meeting, syncUp: SyncUp)
           }
-          static func scope(_ store: ComposableArchitecture.Store<Self.State, Self.Action>) -> CaseScope {
+          static func scope(_ store: ComposableArchitecture.Store2<Self.State, Self.Action>) -> CaseScope {
             switch store.state {
             case let .alert(v0):
               return .alert(v0)
@@ -830,7 +830,7 @@
             case popover(ComposableArchitecture.StoreOf<Counter>)
             case sheet(ComposableArchitecture.StoreOf<Counter>)
           }
-          static func scope(_ store: ComposableArchitecture.Store<Self.State, Self.Action>) -> CaseScope {
+          static func scope(_ store: ComposableArchitecture.Store2<Self.State, Self.Action>) -> CaseScope {
             switch store.state {
             case .drillDown:
               return .drillDown(store.scope(state: \.drillDown, action: \.drillDown)!)
@@ -884,7 +884,7 @@
           enum CaseScope {
             case feature(ComposableArchitecture.StoreOf<Nested.Feature>)
           }
-          static func scope(_ store: ComposableArchitecture.Store<Self.State, Self.Action>) -> CaseScope {
+          static func scope(_ store: ComposableArchitecture.Store2<Self.State, Self.Action>) -> CaseScope {
             switch store.state {
             case .feature:
               return .feature(store.scope(state: \.feature, action: \.feature)!)
@@ -1246,7 +1246,7 @@
             #endif
 
           }
-          static func scope(_ store: ComposableArchitecture.Store<Self.State, Self.Action>) -> CaseScope {
+          static func scope(_ store: ComposableArchitecture.Store2<Self.State, Self.Action>) -> CaseScope {
             switch store.state {
             case .child:
               return .child(store.scope(state: \.child, action: \.child)!)

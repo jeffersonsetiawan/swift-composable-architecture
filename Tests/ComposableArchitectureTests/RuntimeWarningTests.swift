@@ -13,7 +13,7 @@
       enum Action: BindableAction, Equatable {
         case binding(BindingAction<State>)
       }
-      let store = Store<State, Action>(initialState: State()) {}
+      let store = Store2<State, Action>(initialState: State()) {}
 
       XCTExpectFailure {
         ViewStore(store, observe: { $0 }).$value.wrappedValue = 42
@@ -40,7 +40,7 @@
       enum Action: BindableAction, Equatable {
         case binding(BindingAction<State>)
       }
-      let store = Store<State, Action>(initialState: State()) {}
+      let store = Store2<State, Action>(initialState: State()) {}
 
       XCTExpectFailure {
         store.count = 42
@@ -65,7 +65,7 @@
       enum Action: BindableAction, Equatable {
         case binding(BindingAction<State>)
       }
-      let store = Store<State, Action>(initialState: State()) {}
+      let store = Store2<State, Action>(initialState: State()) {}
 
       XCTExpectFailure {
         ViewStore(store, observe: { $0 }).$value.wrappedValue = 42

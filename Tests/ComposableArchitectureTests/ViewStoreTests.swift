@@ -13,7 +13,7 @@ final class ViewStoreTests: BaseTCATestCase {
 
   @MainActor
   func testPublisherFirehose() {
-    let store = Store<Int, Void>(initialState: 0) {}
+    let store = Store2<Int, Void>(initialState: 0) {}
     let viewStore = ViewStore(store, observe: { $0 })
 
     var emissionCount = 0
@@ -33,7 +33,7 @@ final class ViewStoreTests: BaseTCATestCase {
   @available(*, deprecated)
   @MainActor
   func testEqualityChecks() {
-    let store = Store<State, Void>(initialState: State()) {}
+    let store = Store2<State, Void>(initialState: State()) {}
 
     let store1 = store.scope(state: { $0 }, action: { $0 })
     let store2 = store1.scope(state: { $0 }, action: { $0 })
@@ -138,7 +138,7 @@ final class ViewStoreTests: BaseTCATestCase {
 
   @MainActor
   func testStorePublisherSubscriptionOrder() {
-    let store = Store<Int, Void>(initialState: 0) {
+    let store = Store2<Int, Void>(initialState: 0) {
       Reduce { state, _ in
         state += 1
         return .none

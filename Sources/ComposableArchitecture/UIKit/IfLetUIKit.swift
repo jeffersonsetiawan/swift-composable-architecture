@@ -1,6 +1,6 @@
 import Combine
 
-extension Store {
+extension Store2 {
   /// Calls one of two closures depending on whether a store's optional state is `nil` or not, and
   /// whenever this condition changes for as long as the cancellable lives.
   ///
@@ -14,7 +14,7 @@ extension Store {
   ///
   /// ```swift
   /// class ParentViewController: UIViewController {
-  ///   let store: Store<ParentState, ParentAction>
+  ///   let store: Store2<ParentState, ParentAction>
   ///   var cancellables: Set<AnyCancellable> = []
   ///   // ...
   ///   func viewDidLoad() {
@@ -50,7 +50,7 @@ extension Store {
   @available(tvOS, deprecated: 9999, message: "Use 'observe' and 'if let store.scope', instead.")
   @available(watchOS, deprecated: 9999, message: "Use 'observe' and 'if let store.scope', instead.")
   public func ifLet<Wrapped>(
-    then unwrap: @escaping (_ store: Store<Wrapped, Action>) -> Void,
+    then unwrap: @escaping (_ store: Store2<Wrapped, Action>) -> Void,
     else: @escaping () -> Void = {}
   ) -> any Cancellable where State == Wrapped? {
     return self

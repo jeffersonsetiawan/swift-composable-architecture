@@ -5,10 +5,10 @@ import SwiftUI
 #endif
 
 #if !os(visionOS)
-  extension Store: Perceptible {}
+  extension Store2: Perceptible {}
 #endif
 
-extension Store where State: ObservableState {
+extension Store2 where State: ObservableState {
   var observableState: State {
     self._$observationRegistrar.access(self, keyPath: \.currentState)
     return self.currentState
@@ -24,21 +24,21 @@ extension Store where State: ObservableState {
   }
 }
 
-extension Store: Equatable {
-  public static nonisolated func == (lhs: Store, rhs: Store) -> Bool {
+extension Store2: Equatable {
+  public static nonisolated func == (lhs: Store2, rhs: Store2) -> Bool {
     lhs === rhs
   }
 }
 
-extension Store: Hashable {
+extension Store2: Hashable {
   public nonisolated func hash(into hasher: inout Hasher) {
     hasher.combine(ObjectIdentifier(self))
   }
 }
 
-extension Store: Identifiable {}
+extension Store2: Identifiable {}
 
-extension Store where State: ObservableState {
+extension Store2 where State: ObservableState {
   /// Scopes the store to optional child state and actions.
   ///
   /// If your feature holds onto a child feature as an optional:
@@ -87,7 +87,7 @@ extension Store where State: ObservableState {
     filePath: StaticString = #filePath,
     line: UInt = #line,
     column: UInt = #column
-  ) -> Store<ChildState, ChildAction>? {
+  ) -> Store2<ChildState, ChildAction>? {
     if !self.canCacheChildren {
       reportIssue(
         uncachedStoreWarning(self),
@@ -174,8 +174,8 @@ extension Binding {
     filePath: StaticString = #fileID,
     line: UInt = #line,
     column: UInt = #column
-  ) -> Binding<Store<ChildState, ChildAction>?>
-  where Value == Store<State, Action> {
+  ) -> Binding<Store2<ChildState, ChildAction>?>
+  where Value == Store2<State, Action> {
     self[
       id: wrappedValue.currentState[keyPath: state].flatMap(_identifiableID),
       state: state,
@@ -253,8 +253,8 @@ extension SwiftUI.Bindable {
     filePath: StaticString = #fileID,
     line: UInt = #line,
     column: UInt = #column
-  ) -> Binding<Store<ChildState, ChildAction>?>
-  where Value == Store<State, Action> {
+  ) -> Binding<Store2<ChildState, ChildAction>?>
+  where Value == Store2<State, Action> {
     self[
       id: wrappedValue.currentState[keyPath: state].flatMap(_identifiableID),
       state: state,
@@ -330,8 +330,8 @@ extension Perception.Bindable {
     filePath: StaticString = #filePath,
     line: UInt = #line,
     column: UInt = #column
-  ) -> Binding<Store<ChildState, ChildAction>?>
-  where Value == Store<State, Action> {
+  ) -> Binding<Store2<ChildState, ChildAction>?>
+  where Value == Store2<State, Action> {
     self[
       id: wrappedValue.currentState[keyPath: state].flatMap(_identifiableID),
       state: state,
@@ -358,8 +358,8 @@ extension UIBindable {
     filePath: StaticString = #filePath,
     line: UInt = #line,
     column: UInt = #column
-  ) -> UIBinding<Store<ChildState, ChildAction>?>
-  where Value == Store<State, Action> {
+  ) -> UIBinding<Store2<ChildState, ChildAction>?>
+  where Value == Store2<State, Action> {
     self[
       id: wrappedValue.currentState[keyPath: state].flatMap(_identifiableID),
       state: state,
@@ -373,7 +373,7 @@ extension UIBindable {
   }
 }
 
-extension Store where State: ObservableState {
+extension Store2 where State: ObservableState {
   @_spi(Internals)
   public subscript<ChildState, ChildAction>(
     id id: AnyHashable?,
@@ -384,7 +384,7 @@ extension Store where State: ObservableState {
     filePath filePath: _HashableStaticString,
     line line: UInt,
     column column: UInt
-  ) -> Store<ChildState, ChildAction>? {
+  ) -> Store2<ChildState, ChildAction>? {
     get {
       #if DEBUG && !os(visionOS)
         _PerceptionLocals.$isInPerceptionTracking.withValue(isInViewBody) {
@@ -448,7 +448,7 @@ extension Store where State: ObservableState {
   }
 }
 
-func uncachedStoreWarning<State, Action>(_ store: Store<State, Action>) -> String {
+func uncachedStoreWarning<State, Action>(_ store: Store2<State, Action>) -> String {
   """
   Scoping from uncached \(store) is not compatible with observation.
 

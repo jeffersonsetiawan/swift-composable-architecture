@@ -84,7 +84,7 @@ final class CompatibilityTests: BaseTCATestCase {
     var cancellables: Set<AnyCancellable> = []
     defer { _ = cancellables }
 
-    let store = Store<Int, Int>(initialState: 0) {
+    let store = Store2<Int, Int>(initialState: 0) {
       Reduce { state, action in
         state = action
         return .none

@@ -11,7 +11,7 @@ final class StoreTests: BaseTCATestCase {
 
   @MainActor
   func testCancellableIsRemovedOnImmediatelyCompletingEffect() {
-    let store = Store<Void, Void>(initialState: ()) {}
+    let store = Store2<Void, Void>(initialState: ()) {}
 
     XCTAssertEqual(store.rootStore.effectCancellables.count, 0)
 
@@ -104,7 +104,7 @@ final class StoreTests: BaseTCATestCase {
   @MainActor
   func testScopeCallCount_OneLevel_NoSubscription() {
     var numCalls1 = 0
-    let store = Store<Int, Void>(initialState: 0) {}
+    let store = Store2<Int, Void>(initialState: 0) {}
       .scope(
         state: { (count: Int) -> Int in
           numCalls1 += 1
@@ -122,7 +122,7 @@ final class StoreTests: BaseTCATestCase {
   @MainActor
   func testScopeCallCount_OneLevel_Subscribing() {
     var numCalls1 = 0
-    let store = Store<Int, Void>(initialState: 0) {}
+    let store = Store2<Int, Void>(initialState: 0) {}
       .scope(
         state: { (count: Int) -> Int in
           numCalls1 += 1
@@ -142,7 +142,7 @@ final class StoreTests: BaseTCATestCase {
   func testScopeCallCount_TwoLevels_Subscribing() {
     var numCalls1 = 0
     var numCalls2 = 0
-    let store = Store<Int, Void>(initialState: 0) {}
+    let store = Store2<Int, Void>(initialState: 0) {}
       .scope(
         state: { (count: Int) -> Int in
           numCalls1 += 1
@@ -173,7 +173,7 @@ final class StoreTests: BaseTCATestCase {
     var numCalls2 = 0
     var numCalls3 = 0
 
-    let store1 = Store<Int, Void>(initialState: 0) {}
+    let store1 = Store2<Int, Void>(initialState: 0) {}
     let store2 =
       store1
       .scope(
@@ -1130,7 +1130,7 @@ final class StoreTests: BaseTCATestCase {
     let store = withDependencies {
       $0.uuid = .incrementing
     } operation: {
-      Store<UUID, Void>(initialState: UUID()) {
+      Store2<UUID, Void>(initialState: UUID()) {
         Reduce { state, _ in
           @Dependency(\.uuid) var uuid
           state = uuid()
@@ -1153,7 +1153,7 @@ final class StoreTests: BaseTCATestCase {
 
   @MainActor
   func testStorePublisherRemovesSubscriptionOnCancel() {
-    let store = Store<Void, Void>(initialState: ()) {}
+    let store = Store2<Void, Void>(initialState: ()) {}
     weak var subscription: AnyObject?
     let cancellable = store.publisher
       .handleEvents(receiveSubscription: { subscription = $0 as AnyObject })
@@ -1165,7 +1165,7 @@ final class StoreTests: BaseTCATestCase {
 
   @MainActor
   func testSubscriptionOwnsStorePublisher() {
-    var store: Store<Void, Void>? = Store(initialState: ()) {}
+    var store: Store2<Void, Void>? = Store(initialState: ()) {}
     weak var weakStore = store
     let cancellable = store!.publisher
       .sink { _ in }

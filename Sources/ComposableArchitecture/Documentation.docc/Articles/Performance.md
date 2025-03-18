@@ -21,7 +21,7 @@ at each layer a reducer can intercept and reinterpret the action.
 
 It is far better to share logic via simple methods on your ``Reducer`` conformance.
 The helper methods can take `inout State` as an argument if it needs to make mutations, and it
-can return an `Effect<Action>`. This allows you to share logic without incurring the cost
+can return an `Effect2<Action>`. This allows you to share logic without incurring the cost
 of sending needless actions.
 
 For example, suppose that there are 3 UI components in your feature such that when any is changed
@@ -106,7 +106,7 @@ and executing synchronous effects.
 
 Instead, we recommend sharing logic with methods defined in your feature's reducer. The method has
 full access to all dependencies, it can take an `inout State` if it needs to make mutations to 
-state, and it can return an `Effect<Action>` if it needs to execute effects.
+state, and it can return an `Effect2<Action>` if it needs to execute effects.
 
 The above example can be refactored like so:
 
@@ -135,7 +135,7 @@ struct Feature {
     }
   }
 
-  func sharedComputation(state: inout State) -> Effect<Action> {
+  func sharedComputation(state: inout State) -> Effect2<Action> {
     // Some shared work to compute something.
     return .run { send in
       // A shared effect to compute something

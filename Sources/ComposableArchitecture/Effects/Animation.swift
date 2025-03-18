@@ -1,7 +1,7 @@
 import Combine
 import SwiftUI
 
-extension Effect {
+extension Effect2 {
   /// Wraps the emission of each element with SwiftUI's `withAnimation`.
   ///
   /// ```swift

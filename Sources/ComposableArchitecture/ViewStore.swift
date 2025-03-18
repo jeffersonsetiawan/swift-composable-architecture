@@ -35,11 +35,11 @@ import SwiftUI
 /// state updates:
 ///
 /// ```swift
-/// let store: Store<State, Action>
+/// let store: Store2<State, Action>
 /// let viewStore: ViewStore<State, Action>
 /// private var cancellables: Set<AnyCancellable> = []
 ///
-/// init(store: Store<State, Action>) {
+/// init(store: Store2<State, Action>) {
 ///   self.store = store
 ///   self.viewStore = ViewStore(store, observe: { $0 })
 /// }
@@ -101,7 +101,7 @@ public final class ViewStore<ViewState, ViewAction>: ObservableObject {
   #if DEBUG
     private let storeTypeName: String
   #endif
-  let store: Store<ViewState, ViewAction>
+  let store: Store2<ViewState, ViewAction>
 
   /// Initializes a view store from a store which observes changes to state.
   ///
@@ -118,7 +118,7 @@ public final class ViewStore<ViewState, ViewAction>: ObservableObject {
   ///   - isDuplicate: A function to determine when two `State` values are equal. When values are
   ///   equal, repeat view computations are removed.
   public convenience init<State>(
-    _ store: Store<State, ViewAction>,
+    _ store: Store2<State, ViewAction>,
     observe toViewState: @escaping (_ state: State) -> ViewState,
     removeDuplicates isDuplicate: @escaping (_ lhs: ViewState, _ rhs: ViewState) -> Bool
   ) {
@@ -146,7 +146,7 @@ public final class ViewStore<ViewState, ViewAction>: ObservableObject {
   ///   - isDuplicate: A function to determine when two `State` values are equal. When values are
   ///   equal, repeat view computations are removed.
   public init<State, Action>(
-    _ store: Store<State, Action>,
+    _ store: Store2<State, Action>,
     observe toViewState: @escaping (_ state: State) -> ViewState,
     send fromViewAction: @escaping (_ viewAction: ViewAction) -> Action,
     removeDuplicates isDuplicate: @escaping (_ lhs: ViewState, _ rhs: ViewState) -> Bool
@@ -332,7 +332,7 @@ public final class ViewStore<ViewState, ViewAction>: ObservableObject {
   ///
   /// ```swift
   /// struct MyView: View {
-  ///   let store: Store<State, Action>
+  ///   let store: Store2<State, Action>
   ///
   ///   var body: some View {
   ///     WithViewStore(self.store, observe: { $0 }) { viewStore in
@@ -600,7 +600,7 @@ extension ViewStore where ViewState: Equatable {
   ///   - toViewState: A transformation of `ViewState` to the state that will be observed for
   ///   changes.
   public convenience init<State>(
-    _ store: Store<State, ViewAction>,
+    _ store: Store2<State, ViewAction>,
     observe toViewState: @escaping (_ state: State) -> ViewState
   ) {
     self.init(store, observe: toViewState, removeDuplicates: ==)
@@ -620,7 +620,7 @@ extension ViewStore where ViewState: Equatable {
   ///   changes.
   ///   - fromViewAction: A transformation of `ViewAction` that describes what actions can be sent.
   public convenience init<State, Action>(
-    _ store: Store<State, Action>,
+    _ store: Store2<State, Action>,
     observe toViewState: @escaping (_ state: State) -> ViewState,
     send fromViewAction: @escaping (_ viewAction: ViewAction) -> Action
   ) {

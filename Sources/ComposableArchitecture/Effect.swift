@@ -2,7 +2,7 @@
 import Foundation
 import SwiftUI
 
-public struct Effect<Action>: Sendable {
+public struct Effect2<Action>: Sendable {
   @usableFromInline
   enum Operation: Sendable {
     case none
@@ -24,7 +24,7 @@ public struct Effect<Action>: Sendable {
 /// Instead of specifying the action:
 ///
 /// ```swift
-/// let effect: Effect<Feature.Action>
+/// let effect: Effect2<Feature.Action>
 /// ```
 ///
 /// You can specify the reducer:
@@ -32,11 +32,11 @@ public struct Effect<Action>: Sendable {
 /// ```swift
 /// let effect: EffectOf<Feature>
 /// ```
-public typealias EffectOf<R: Reducer> = Effect<R.Action>
+public typealias EffectOf<R: Reducer> = Effect2<R.Action>
 
 // MARK: - Creating Effects
 
-extension Effect {
+extension Effect2 {
   /// An effect that does nothing and completes immediately. Useful for situations where you must
   /// return an effect, but you don't need to do anything.
   @inlinable
@@ -224,7 +224,7 @@ public struct Send<Action>: Sendable {
 
 // MARK: - Composing Effects
 
-extension Effect {
+extension Effect2 {
   /// Merges a variadic list of effects together into a single effect, which runs the effects at the
   /// same time.
   ///
@@ -350,7 +350,7 @@ extension Effect {
   /// - Returns: A publisher that uses the provided closure to map elements from the upstream effect
   ///   to new elements that it then publishes.
   @inlinable
-  public func map<T>(_ transform: @escaping @Sendable (Action) -> T) -> Effect<T> {
+  public func map<T>(_ transform: @escaping @Sendable (Action) -> T) -> Effect2<T> {
     switch self.operation {
     case .none:
       return .none

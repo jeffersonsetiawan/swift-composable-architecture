@@ -84,7 +84,7 @@ public struct _PrintChangesReducer<Base: Reducer>: Reducer {
   #if DEBUG
     public func reduce(
       into state: inout Base.State, action: Base.Action
-    ) -> Effect<Base.Action> {
+    ) -> Effect2<Base.Action> {
       if let printer = self.printer {
         let changeTracker = SharedChangeTracker(reportUnassertedChanges: false)
         return changeTracker.track {
@@ -123,7 +123,7 @@ public struct _PrintChangesReducer<Base: Reducer>: Reducer {
     @inlinable
     public func reduce(
       into state: inout Base.State, action: Base.Action
-    ) -> Effect<Base.Action> {
+    ) -> Effect2<Base.Action> {
       return self.base.reduce(into: &state, action: action)
     }
   #endif

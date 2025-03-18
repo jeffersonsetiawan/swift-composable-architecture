@@ -23,9 +23,9 @@
     public convenience init<State, Action>(
       navigationBarClass: AnyClass? = nil,
       toolbarClass: AnyClass? = nil,
-      path: UIBinding<Store<StackState<State>, StackAction<State, Action>>>,
+      path: UIBinding<Store2<StackState<State>, StackAction<State, Action>>>,
       root: () -> UIViewController,
-      destination: @escaping (Store<State, Action>) -> UIViewController,
+      destination: @escaping (Store2<State, Action>) -> UIViewController,
       fileID: StaticString = #fileID,
       filePath: StaticString = #filePath,
       line: UInt = #line,

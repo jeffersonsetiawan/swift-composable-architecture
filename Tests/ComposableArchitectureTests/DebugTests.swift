@@ -87,7 +87,7 @@
         }
       )
 
-      let store = await Store<Int, Bool>(initialState: 0) {
+      let store = await Store2<Int, Bool>(initialState: 0) {
         Reduce<Int, Bool>(internal: { state, action in
           state += action ? 1 : -1
           return .none
@@ -114,7 +114,7 @@
         }
       )
 
-      let store = Store<Int, Bool>(initialState: 0) {
+      let store = Store2<Int, Bool>(initialState: 0) {
         Reduce<Int, Bool>(internal: { state, action in
           state += action ? 1 : -1
           return .run { _ in await Task.yield() }
@@ -167,7 +167,7 @@
         @Shared var count: Int
       }
 
-      let store = await Store<State, Bool>(initialState: State(count: Shared(value: 0))) {
+      let store = await Store2<State, Bool>(initialState: State(count: Shared(value: 0))) {
         Reduce<State, Bool>(internal: { state, action in
           state.$count.withLock { $0 += action ? 1 : -1 }
           return .none
